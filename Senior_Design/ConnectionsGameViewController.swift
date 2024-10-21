@@ -12,9 +12,11 @@ class ConnectionsGameViewController: UIViewController {
         "compost": ["compost1", "compost2", "compost3", "compost4"],
         "hazard": ["hazard1", "hazard2", "hazard3", "hazard4"]
     ]
-    
+
     // Track which category each button belongs to
     var buttonCategories: [Int: String] = [:]
+    // Track completed categories
+    var completedCategories: Set<String> = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,18 +86,18 @@ class ConnectionsGameViewController: UIViewController {
         return button
     }
 
-
     @objc private func tileTapped(_ sender: UIButton) {
         if selectedButtons.contains(sender) {
             sender.backgroundColor = .lightGray
             selectedButtons.remove(sender)
         } else {
-            sender.backgroundColor = .blue
+            sender.backgroundColor = .black
             selectedButtons.insert(sender)
         }
         checkForMismatch()
+        checkForConnection()
     }
-    
+
     private func checkForMismatch() {
         guard selectedButtons.count >= 2 else { return }
 
@@ -111,15 +113,62 @@ class ConnectionsGameViewController: UIViewController {
             resetSelections()
         }
     }
-    
+
+    private func checkForConnection() {
+        guard selectedButtons.count == 4 else { return }
+
+        let firstButton = selectedButtons.first!
+        let firstCategory = buttonCategories[firstButton.tag]
+
+        let allSameCategory = selectedButtons.allSatisfy { button in
+            buttonCategories[button.tag] == firstCategory
+        }
+
+        if allSameCategory {
+            completedCategories.insert(firstCategory!) // Mark the category as completed
+            applyBorderColor(for: firstCategory!)
+            disableButtons()
+            selectedButtons.removeAll()
+            checkForGameCompletion() // Check if all categories are completed
+        }
+    }
+
+    private func applyBorderColor(for category: String) {
+        let borderColor: UIColor
+
+        switch category {
+        case "compost":
+            borderColor = .green
+        case "recycle":
+            borderColor = .blue
+        case "hazard":
+            borderColor = .yellow
+        case "landfill":
+            borderColor = .brown
+        default:
+            borderColor = .clear
+        }
+
+        selectedButtons.forEach { button in
+            button.layer.borderWidth = 4
+            button.layer.borderColor = borderColor.cgColor
+        }
+    }
+
+    private func disableButtons() {
+        selectedButtons.forEach { button in
+            button.isEnabled = false
+        }
+    }
+
     private func resetSelections() {
         selectedButtons.forEach { button in
             button.backgroundColor = .lightGray
+            button.layer.borderWidth = 0
         }
         selectedButtons.removeAll()
     }
 
-    
     private func showMismatchAlert() {
         let alert = UIAlertController(
             title: "Mismatch!",
@@ -130,34 +179,30 @@ class ConnectionsGameViewController: UIViewController {
         present(alert, animated: true)
     }
 
-
-
-    private func checkForConnection() {
-        guard selectedButtons.count == 4 else { return }
-
-        // Check if all selected buttons belong to the same category
-        let firstButton = selectedButtons.first!
-        let firstCategory = buttonCategories[firstButton.tag]
-
-        let allSameCategory = selectedButtons.allSatisfy { button in
-            buttonCategories[button.tag] == firstCategory
-        }
-
-        if allSameCategory {
-            showWinAlert()
-        } else {
-            showMismatchAlert()
+    private func checkForGameCompletion() {
+        if completedCategories.count == categories.count {
+            showGameOverAlert()
         }
     }
 
-    private func showWinAlert() {
+    private func showGameOverAlert() {
         let alert = UIAlertController(
             title: "You Win!",
-            message: "You connected 4 tiles of the same category!",
+            message: "Congratulations! You matched all the groups correctly!",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+            self.resetGame()
+        }))
         present(alert, animated: true)
+    }
+
+    private func resetGame() {
+        completedCategories.removeAll()
+        selectedButtons.removeAll()
+        buttonCategories.removeAll()
+        view.subviews.forEach { $0.removeFromSuperview() }
+        viewDidLoad() // Restart the game
     }
 }
 
