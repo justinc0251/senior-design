@@ -93,8 +93,44 @@ class ConnectionsGameViewController: UIViewController {
             sender.backgroundColor = .blue
             selectedButtons.insert(sender)
         }
-        checkForConnection()
+        checkForMismatch()
     }
+    
+    private func checkForMismatch() {
+        guard selectedButtons.count >= 2 else { return }
+
+        let firstButton = selectedButtons.first!
+        let firstCategory = buttonCategories[firstButton.tag]
+
+        let isMismatch = selectedButtons.contains { button in
+            buttonCategories[button.tag] != firstCategory
+        }
+
+        if isMismatch {
+            showMismatchAlert()
+            resetSelections()
+        }
+    }
+    
+    private func resetSelections() {
+        selectedButtons.forEach { button in
+            button.backgroundColor = .lightGray
+        }
+        selectedButtons.removeAll()
+    }
+
+    
+    private func showMismatchAlert() {
+        let alert = UIAlertController(
+            title: "Mismatch!",
+            message: "The selected tiles are not from the same category. Try again!",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+
 
     private func checkForConnection() {
         guard selectedButtons.count == 4 else { return }
@@ -118,16 +154,6 @@ class ConnectionsGameViewController: UIViewController {
         let alert = UIAlertController(
             title: "You Win!",
             message: "You connected 4 tiles of the same category!",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-
-    private func showMismatchAlert() {
-        let alert = UIAlertController(
-            title: "Mismatch!",
-            message: "The selected tiles are not from the same category.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
