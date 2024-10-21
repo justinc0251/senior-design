@@ -13,14 +13,14 @@ class ConnectionsGameViewController: UIViewController {
     }
 
     private func setupGrid() {
-        let buttonSize = view.frame.width / CGFloat(gridSize) - 10
+        let buttonSize = view.frame.width / CGFloat(gridSize) - 15
 
         for row in 0..<gridSize {
             for col in 0..<gridSize {
                 let button = createButton()
                 button.frame = CGRect(
-                    x: CGFloat(col) * (buttonSize + 10),
-                    y: CGFloat(row) * (buttonSize + 10) + 100,
+                    x: CGFloat(col) * (buttonSize + 10) + 12,
+                    y: CGFloat(row) * (buttonSize + 10) + 200,
                     width: buttonSize,
                     height: buttonSize
                 )
