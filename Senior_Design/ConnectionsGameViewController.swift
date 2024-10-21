@@ -10,6 +10,19 @@ class ConnectionsGameViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupGrid()
+        setupTitle()
+    }
+    
+    private func setupTitle() {
+        let title = UILabel()
+        title.text = "Connections Game"
+        title.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        view.addSubview(title)
+        title.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            title.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            title.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40)
+        ])
     }
 
     private func setupGrid() {
@@ -19,7 +32,7 @@ class ConnectionsGameViewController: UIViewController {
             for col in 0..<gridSize {
                 let button = createButton()
                 button.frame = CGRect(
-                    x: CGFloat(col) * (buttonSize + 10) + 12,
+                    x: CGFloat(col) * (buttonSize + 10) + 13,
                     y: CGFloat(row) * (buttonSize + 10) + 200,
                     width: buttonSize,
                     height: buttonSize
