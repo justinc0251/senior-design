@@ -14,6 +14,8 @@
 		D071BEE32CC5D27000D7D9B1 /* ConnectionsGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */; };
 		D071BEE82CC5D27100D7D9B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */; };
 		D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */; };
+		D077E12B2D2F4CF90088E6D4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D077E12A2D2F4CF90088E6D4 /* GoogleService-Info.plist */; };
+		D077E12D2D3326560088E6D4 /* LeaderboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D077E12C2D3326560088E6D4 /* LeaderboardViewController.swift */; };
 		D0B7D0262D2CAEB200D77310 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0252D2CAEB200D77310 /* FirebaseAnalytics */; };
 		D0B7D0282D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0272D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion */; };
 		D0B7D02A2D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0292D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport */; };
@@ -38,7 +40,6 @@
 		D0B7D0502D2CAEB200D77310 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D04F2D2CAEB200D77310 /* FirebaseStorage */; };
 		D0B7D0522D2CAEB200D77310 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0512D2CAEB200D77310 /* FirebaseStorageCombine-Community */; };
 		D0B7D0542D2CAEB200D77310 /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0532D2CAEB200D77310 /* FirebaseVertexAI */; };
-		D0B7D0582D2CB58900D77310 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D0B7D0572D2CB58900D77310 /* GoogleService-Info.plist */; };
 		D0B7D05B2D2CB7A200D77310 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D05A2D2CB7A200D77310 /* GoogleSignIn */; };
 		D0B7D05D2D2CB7A200D77310 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D05C2D2CB7A200D77310 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -53,7 +54,8 @@
 		D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D071BEEA2CC5D27100D7D9B1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D071BEEC2CC5D27100D7D9B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D0B7D0572D2CB58900D77310 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D077E12A2D2F4CF90088E6D4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D077E12C2D3326560088E6D4 /* LeaderboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,12 +114,13 @@
 		D071BEDD2CC5D27000D7D9B1 /* Senior_Design */ = {
 			isa = PBXGroup;
 			children = (
-				D0B7D0572D2CB58900D77310 /* GoogleService-Info.plist */,
 				D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */,
 				D024AF602D267FFE00D37210 /* LoginViewController.swift */,
 				D071BEDE2CC5D27000D7D9B1 /* AppDelegate.swift */,
+				D077E12A2D2F4CF90088E6D4 /* GoogleService-Info.plist */,
 				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
 				D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */,
+				D077E12C2D3326560088E6D4 /* LeaderboardViewController.swift */,
 				D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */,
 				D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */,
 				D071BEEC2CC5D27100D7D9B1 /* Info.plist */,
@@ -216,8 +219,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */,
+				D077E12B2D2F4CF90088E6D4 /* GoogleService-Info.plist in Resources */,
 				D071BEE82CC5D27100D7D9B1 /* Assets.xcassets in Resources */,
-				D0B7D0582D2CB58900D77310 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +235,7 @@
 				D071BEDF2CC5D27000D7D9B1 /* AppDelegate.swift in Sources */,
 				D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */,
 				D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */,
+				D077E12D2D3326560088E6D4 /* LeaderboardViewController.swift in Sources */,
 				D071BEE12CC5D27000D7D9B1 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
