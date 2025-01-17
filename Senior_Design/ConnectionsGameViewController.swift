@@ -1,4 +1,8 @@
 import UIKit
+import Firebase
+import GoogleSignIn
+import FirebaseAuth
+import FirebaseFirestore
 
 class ConnectionsGameViewController: UIViewController {
 
@@ -40,6 +44,7 @@ class ConnectionsGameViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupRestartButton()
+        setupLeaderboardButton()
         setupGrid()
         setupTitle()
         setupAttemptsAndTimerLabels()
@@ -264,6 +269,7 @@ class ConnectionsGameViewController: UIViewController {
 
     private func showWinAlert() {
         gameTimer?.invalidate()
+        updateUserScore(10) // Increment score by 10 for winning
         let alert = UIAlertController(
             title: "You Win!",
             message: "Congratulations! You matched all the groups correctly!",
@@ -283,6 +289,48 @@ class ConnectionsGameViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in self.resetGame() })
         present(alert, animated: true)
     }
+    
+    private func updateUserScore(_ score: Int) {
+        guard let user = Auth.auth().currentUser else { return }
+
+        let db = Firestore.firestore()
+        let userDoc = db.collection("users").document(user.uid)
+
+        userDoc.updateData([
+            "score": FieldValue.increment(Int64(score)) 
+        ]) { error in
+            if let error = error {
+                print("Error updating score: \(error.localizedDescription)")
+            } else {
+                print("Score successfully updated!")
+            }
+        }
+    }
+
+    
+    private let leaderboardButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Leaderboard", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .medium)
+        return button
+    }()
+
+    private func setupLeaderboardButton() {
+        view.addSubview(leaderboardButton)
+        leaderboardButton.addTarget(self, action: #selector(showLeaderboard), for: .touchUpInside)
+
+        NSLayoutConstraint.activate([
+            leaderboardButton.topAnchor.constraint(equalTo: restartButton.bottomAnchor, constant: 20),
+            leaderboardButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc private func showLeaderboard() {
+        let leaderboardVC = LeaderboardViewController()
+        navigationController?.pushViewController(leaderboardVC, animated: true)
+    }
+
 
     private func startTimer() {
         gameTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
