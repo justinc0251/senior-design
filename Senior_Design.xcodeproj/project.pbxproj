@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		49415B202D4209BA00819F0D /* G3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49415B1F2D4209B700819F0D /* G3.swift */; };
 		D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */; };
 		D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D024AF602D267FFE00D37210 /* LoginViewController.swift */; };
 		D06042F82D3B202000494D80 /* LeaderboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06042F72D3B202000494D80 /* LeaderboardViewController.swift */; };
@@ -45,6 +46,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		49415B1F2D4209B700819F0D /* G3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = G3.swift; sourceTree = "<group>"; };
 		D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		D024AF602D267FFE00D37210 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		D06042F72D3B202000494D80 /* LeaderboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewController.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
 				D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */,
 				D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */,
+				49415B1F2D4209B700819F0D /* G3.swift */,
 				D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */,
 				D071BEEC2CC5D27100D7D9B1 /* Info.plist */,
 			);
@@ -237,6 +240,7 @@
 				D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */,
 				D06042F82D3B202000494D80 /* LeaderboardViewController.swift in Sources */,
 				D071BEE12CC5D27000D7D9B1 /* SceneDelegate.swift in Sources */,
+				49415B202D4209BA00819F0D /* G3.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
