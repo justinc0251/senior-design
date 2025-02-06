@@ -37,7 +37,10 @@ class OnboardingViewController: UIViewController {
     
     @objc private func continueToLogin() {
         let loginVC = LoginViewController()
-        navigationController?.pushViewController(loginVC, animated: true)
+        // Transition to LoginViewController
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+            let navigationController = UINavigationController(rootViewController: loginVC)
+            sceneDelegate.window?.rootViewController = navigationController
+        }
     }
 }
-
