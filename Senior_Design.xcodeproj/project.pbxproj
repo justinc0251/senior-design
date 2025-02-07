@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4954D5812D560B1B00C3DE2B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4954D5802D560B1B00C3DE2B /* GoogleService-Info.plist */; };
 		D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */; };
 		D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D024AF602D267FFE00D37210 /* LoginViewController.swift */; };
 		D02D587E2D4254890006E688 /* CatcherGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02D587D2D4254890006E688 /* CatcherGameViewController.swift */; };
 		D02D58802D4254FC0006E688 /* QuizGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02D587F2D4254FC0006E688 /* QuizGameViewController.swift */; };
 		D02D58822D42562D0006E688 /* MiniGamesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02D58812D42562D0006E688 /* MiniGamesViewController.swift */; };
 		D06042F82D3B202000494D80 /* LeaderboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06042F72D3B202000494D80 /* LeaderboardViewController.swift */; };
-		D06042FA2D3B21A500494D80 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D06042F92D3B21A500494D80 /* GoogleService-Info.plist */; };
 		D06042FC2D3B269F00494D80 /* ResourcesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */; };
 		D06042FE2D3B26E400494D80 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06042FD2D3B26E400494D80 /* ProfileViewController.swift */; };
 		D06043002D3CE9AA00494D80 /* ArticleDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06042FF2D3CE9AA00494D80 /* ArticleDetailViewController.swift */; };
@@ -51,13 +51,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4954D5802D560B1B00C3DE2B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		D024AF602D267FFE00D37210 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		D02D587D2D4254890006E688 /* CatcherGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatcherGameViewController.swift; sourceTree = "<group>"; };
 		D02D587F2D4254FC0006E688 /* QuizGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizGameViewController.swift; sourceTree = "<group>"; };
 		D02D58812D42562D0006E688 /* MiniGamesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniGamesViewController.swift; sourceTree = "<group>"; };
 		D06042F72D3B202000494D80 /* LeaderboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewController.swift; sourceTree = "<group>"; };
-		D06042F92D3B21A500494D80 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourcesViewController.swift; sourceTree = "<group>"; };
 		D06042FD2D3B26E400494D80 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		D06042FF2D3CE9AA00494D80 /* ArticleDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDetailViewController.swift; sourceTree = "<group>"; };
@@ -130,7 +130,7 @@
 				D06042F72D3B202000494D80 /* LeaderboardViewController.swift */,
 				D024AF602D267FFE00D37210 /* LoginViewController.swift */,
 				D071BEDE2CC5D27000D7D9B1 /* AppDelegate.swift */,
-				D06042F92D3B21A500494D80 /* GoogleService-Info.plist */,
+				4954D5802D560B1B00C3DE2B /* GoogleService-Info.plist */,
 				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
 				D06042FD2D3B26E400494D80 /* ProfileViewController.swift */,
 				D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */,
@@ -237,7 +237,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */,
-				D06042FA2D3B21A500494D80 /* GoogleService-Info.plist in Resources */,
+				4954D5812D560B1B00C3DE2B /* GoogleService-Info.plist in Resources */,
 				D071BEE82CC5D27100D7D9B1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
