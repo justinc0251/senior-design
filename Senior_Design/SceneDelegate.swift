@@ -1,94 +1,63 @@
+//
+//  SceneDelegate.swift
+//  Senior_Design
+//
+//  Created by Justin Chung on 10/20/24.
+//
+
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    func scene(_ scene: UIScene,
-               willConnectTo session: UISceneSession,
-               options connectionOptions: UIScene.ConnectionOptions) {
-        
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
 
-        // Decide which view controller should be shown on launch.
-        if isFirstLaunch() {
-            let onboardingVC = OnboardingViewController()
-            let nav = UINavigationController(rootViewController: onboardingVC)
-            window?.rootViewController = nav
-        }
-        else if !isLoggedIn() {
-            let loginVC = LoginViewController()
-            let nav = UINavigationController(rootViewController: loginVC)
-            window?.rootViewController = nav
-        }
-        else {
-            // User is returning and logged in, so go to main tab bar.
-            window?.rootViewController = createTabBarController()
-        }
+        let window = UIWindow(windowScene: windowScene)
 
-        window?.makeKeyAndVisible()
+        // Start with Onboarding
+        let onboardingVC = OnboardingViewController()
+        let navigationController = UINavigationController(rootViewController: onboardingVC)
+        
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
+        
+        self.window = window
     }
 
-    func createTabBarController() -> UITabBarController {
-        // 1) Replace the direct ConnectionsGameViewController with MiniGamesViewController
-        let miniGamesVC = MiniGamesViewController()
-        miniGamesVC.tabBarItem = UITabBarItem(
-            title: "Mini Games",
-            image: UIImage(systemName: "gamecontroller"),
-            tag: 0
-        )
-
-        // 2) Set up the other tabs
-        let resourcesVC = ResourcesViewController()
-        resourcesVC.tabBarItem = UITabBarItem(
-            title: "Resources",
-            image: UIImage(systemName: "book"),
-            tag: 1
-        )
-
-        let leaderboardVC = LeaderboardViewController()
-        leaderboardVC.tabBarItem = UITabBarItem(
-            title: "Leaderboard",
-            image: UIImage(systemName: "list.number"),
-            tag: 2
-        )
-
-        let profileVC = ProfileViewController()
-        profileVC.tabBarItem = UITabBarItem(
-            title: "Profile",
-            image: UIImage(systemName: "person.crop.circle"),
-            tag: 3
-        )
-
-        // 3) Embed each in a UINavigationController if desired
-        let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [
-            UINavigationController(rootViewController: miniGamesVC),
-            UINavigationController(rootViewController: resourcesVC),
-            UINavigationController(rootViewController: leaderboardVC),
-            UINavigationController(rootViewController: profileVC)
-        ]
-        return tabBarController
+    func sceneDidDisconnect(_ scene: UIScene) {
+        // Called as the scene is being released by the system.
+        // This occurs shortly after the scene enters the background, or when its session is discarded.
+        // Release any resources associated with this scene that can be re-created the next time the scene connects.
+        // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
     }
 
-    private func isFirstLaunch() -> Bool {
-        let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
-        if !hasLaunchedBefore {
-            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
-        }
-        return !hasLaunchedBefore
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        // Called when the scene has moved from an inactive state to an active state.
+        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
     }
 
-    private func isLoggedIn() -> Bool {
-        // Replace with real authentication check
-        return UserDefaults.standard.bool(forKey: "isLoggedIn") == true
+    func sceneWillResignActive(_ scene: UIScene) {
+        // Called when the scene will move from an active state to an inactive state.
+        // This may occur due to temporary interruptions (ex. an incoming phone call).
     }
 
-    // The following methods can remain as-is or as needed.
-    func sceneDidDisconnect(_ scene: UIScene) { }
-    func sceneDidBecomeActive(_ scene: UIScene) { }
-    func sceneWillResignActive(_ scene: UIScene) { }
-    func sceneWillEnterForeground(_ scene: UIScene) { }
-    func sceneDidEnterBackground(_ scene: UIScene) { }
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        // Called as the scene transitions from the background to the foreground.
+        // Use this method to undo the changes made on entering the background.
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        // Called as the scene transitions from the foreground to the background.
+        // Use this method to save data, release shared resources, and store enough scene-specific state information
+        // to restore the scene back to its current state.
+    }
+
+
 }
+

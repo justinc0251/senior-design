@@ -44,6 +44,7 @@ class ConnectionsGameViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupRestartButton()
+        setupLeaderboardButton()
         setupGrid()
         setupTitle()
         setupAttemptsAndTimerLabels()
@@ -314,6 +315,22 @@ class ConnectionsGameViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 18, weight: .medium)
         return button
     }()
+
+    private func setupLeaderboardButton() {
+        view.addSubview(leaderboardButton)
+        leaderboardButton.addTarget(self, action: #selector(showLeaderboard), for: .touchUpInside)
+
+        NSLayoutConstraint.activate([
+            leaderboardButton.topAnchor.constraint(equalTo: restartButton.bottomAnchor, constant: 20),
+            leaderboardButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc private func showLeaderboard() {
+        let leaderboardVC = LeaderboardViewController()
+        navigationController?.pushViewController(leaderboardVC, animated: true)
+    }
+
 
     private func startTimer() {
         gameTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
