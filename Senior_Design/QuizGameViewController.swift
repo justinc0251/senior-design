@@ -7,6 +7,7 @@ class QuizGameViewController: UIViewController {
     private var descriptionLabel: UILabel!
     private var imageView: UIImageView!
     private var currentImage: String!
+    private var titleLabel:UILabel!
     private var isAnswered: Bool = false
     private var imageQueue: [String] = []
     private var currentIndex: Int = 0
@@ -29,6 +30,19 @@ class QuizGameViewController: UIViewController {
                                  height: 150)
         view.addSubview(imageView)
 
+        titleLabel=UILabel()
+        titleLabel.text = getItemTitle(for:currentImage)
+        titleLabel.font=UIFont.boldSystemFont(ofSize:18)
+        titleLabel.textAlignment = .center
+        titleLabel.frame=CGRect(x:20,
+                                y:imageView.frame.maxY+10,
+                                width:view.frame.width-40,
+                                height:30)
+        view.addSubview(titleLabel)
+        
+        
+        
+        
         // 2) Description label
         descriptionLabel = UILabel()
         descriptionLabel.text = "Select an option to learn more."
@@ -42,6 +56,7 @@ class QuizGameViewController: UIViewController {
         descriptionLabel.alpha = 0 // hidden until they pick an answer
         view.addSubview(descriptionLabel)
 
+        
         // 3) Four answer option buttons
         let recycleButton = createButton(title: "Recycle",
                                          frame: CGRect(x: 30,
@@ -114,6 +129,8 @@ class QuizGameViewController: UIViewController {
         nextQuestionButton.isHidden = true     // Hide until question is answered
         view.addSubview(nextQuestionButton)
     }
+    
+    
 
     private func initializeImageQueue() {
         // Add whatever images you want to quiz on
@@ -202,12 +219,24 @@ class QuizGameViewController: UIViewController {
         // Move to the next question only when user taps 'Next Question'
         loadNextQuestion()
     }
+    
+    
+    private func getItemTitle(for imageName: String) ->String {
+        switch imageName{
+        case "recycle1": return "Piece of Paper"
+        case "compost1": return "Apple"
+        case "landfill1": return "Plastic Bag"
+        default:        return "unknown Item"
+    
+        }
+    }
 
     private func loadNextQuestion() {
         if currentIndex + 1 < imageQueue.count {
             currentIndex += 1
             currentImage = imageQueue[currentIndex]
             imageView.image = UIImage(named: currentImage)
+            titleLabel.text=getItemTitle(for: currentImage)
             descriptionLabel.alpha = 0
             // Reset button colors
             for subview in view.subviews {
