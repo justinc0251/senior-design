@@ -32,7 +32,7 @@ class QuizGameViewController: UIViewController {
 
         titleLabel=UILabel()
         titleLabel.text = getItemTitle(for:currentImage)
-        titleLabel.font=UIFont.boldSystemFont(ofSize:18)
+        titleLabel.font=UIFont.boldSystemFont(ofSize:28)
         titleLabel.textAlignment = .center
         titleLabel.frame=CGRect(x:20,
                                 y:imageView.frame.maxY+10,
@@ -50,7 +50,7 @@ class QuizGameViewController: UIViewController {
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 0
         descriptionLabel.frame = CGRect(x: 20,
-                                        y: imageView.frame.maxY + 20,
+                                        y: titleLabel.frame.maxY + 10,
                                         width: view.frame.width - 40,
                                         height: 60)
         descriptionLabel.alpha = 0 // hidden until they pick an answer
