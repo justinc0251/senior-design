@@ -69,8 +69,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             UINavigationController(rootViewController: leaderboardVC),
             UINavigationController(rootViewController: profileVC)
         ]
+        
+        // Set the highlighted (selected) tab color to light green.
+        tabBarController.tabBar.tintColor = UIColor(red: 144/255, green: 238/255, blue: 144/255, alpha: 1)
+
         return tabBarController
     }
+
 
     private func isFirstLaunch() -> Bool {
         let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
