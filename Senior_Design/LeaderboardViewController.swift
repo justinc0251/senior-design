@@ -4,17 +4,16 @@ import FirebaseFirestore
 class LeaderboardViewController: UIViewController {
     
     private var scores: [(name: String, score: Int)] = []
-    private var timeFrame: TimeFrame = .weekly
+    private var timeFrame: TimeFrame = .friends
     
     enum TimeFrame {
-        case weekly
-        case allTime
+        case friends
+        case global
     }
     
-    // UI Components
     private let headerView = UIView()
     private let titleLabel = UILabel()
-    private let segmentedControl = UISegmentedControl(items: ["Weekly", "All Time"])
+    private let segmentedControl = UISegmentedControl(items: ["Friends", "Global"])
     private let tableView = UITableView()
     
     override func viewDidLoad() {
@@ -30,28 +29,32 @@ class LeaderboardViewController: UIViewController {
     }
     
     private func setupUI() {
-        // Header with title
         view.addSubview(headerView)
         
         titleLabel.text = "Leaderboard"
-        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
+        titleLabel.font = UIFont(name: "Sen-Regular", size: 24)!
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
         
-        // Segmented control
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         segmentedControl.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
         segmentedControl.selectedSegmentTintColor = UIColor(red: 141/255, green: 212/255, blue: 109/255, alpha: 1)
         
-        let titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
-        segmentedControl.setTitleTextAttributes(titleTextAttributes, for: .normal)
-        let selectedTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-        segmentedControl.setTitleTextAttributes(selectedTitleTextAttributes, for: .selected)
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.black,
+            .font: UIFont(name: "Sen-Regular", size: 18)!
+        ]
+        segmentedControl.setTitleTextAttributes(normalAttributes, for: .normal)
+        
+        let selectedAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont(name: "Sen-Regular", size: 18)!
+        ]
+        segmentedControl.setTitleTextAttributes(selectedAttributes, for: .selected)
         
         view.addSubview(segmentedControl)
         
-        // TableView
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(LeaderboardCell.self, forCellReuseIdentifier: "LeaderboardCell")
@@ -68,23 +71,19 @@ class LeaderboardViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            // Header
             headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             headerView.heightAnchor.constraint(equalToConstant: 60),
             
-            // Title
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
             
-            // Segmented Control
             segmentedControl.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 20),
             segmentedControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             segmentedControl.widthAnchor.constraint(equalToConstant: 240),
             segmentedControl.heightAnchor.constraint(equalToConstant: 44),
             
-            // TableView
             tableView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
@@ -93,13 +92,13 @@ class LeaderboardViewController: UIViewController {
     }
     
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
-        timeFrame = sender.selectedSegmentIndex == 0 ? .weekly : .allTime
+        timeFrame = sender.selectedSegmentIndex == 0 ? .friends : .global
         fetchLeaderboardData()
     }
     
     private func fetchLeaderboardData() {
         let db = Firestore.firestore()
-        let collection = timeFrame == .weekly ? "weeklyScores" : "users"
+        let collection = timeFrame == .friends ? "weeklyScores" : "users"
         
         db.collection(collection)
             .order(by: "score", descending: true)
@@ -143,6 +142,7 @@ extension LeaderboardViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "LeaderboardCell", for: indexPath) as? LeaderboardCell else {
             return UITableViewCell()
         }
@@ -157,7 +157,6 @@ extension LeaderboardViewController: UITableViewDelegate, UITableViewDataSource 
     }
 }
 
-// Custom cell for leaderboard entries
 class LeaderboardCell: UITableViewCell {
     private let containerView = UIView()
     private let rankLabel = UILabel()
@@ -178,33 +177,28 @@ class LeaderboardCell: UITableViewCell {
         selectionStyle = .none
         backgroundColor = .clear
         
-        // Container view with rounded corners
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 15
         containerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(containerView)
         
-        // Rank label
-        rankLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        rankLabel.font = UIFont(name: "Sen-Regular", size: 18)!
         rankLabel.textColor = .lightGray
         rankLabel.textAlignment = .center
         rankLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(rankLabel)
         
-        // Avatar image view
         avatarImageView.backgroundColor = UIColor(red: 175/255, green: 185/255, blue: 200/255, alpha: 1)
         avatarImageView.layer.cornerRadius = 25
         avatarImageView.clipsToBounds = true
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(avatarImageView)
         
-        // Username label
-        usernameLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        usernameLabel.font = UIFont(name: "Sen-Regular", size: 18)!
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(usernameLabel)
         
-        // Points label
-        pointsLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        pointsLabel.font = UIFont(name: "Sen-Regular", size: 16)!
         pointsLabel.textColor = .gray
         pointsLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(pointsLabel)

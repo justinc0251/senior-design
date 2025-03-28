@@ -11,7 +11,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
 
-        // Decide which view controller should be shown on launch.
         if isFirstLaunch() {
             let onboardingVC = OnboardingViewController()
             let nav = UINavigationController(rootViewController: onboardingVC)
@@ -23,7 +22,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window?.rootViewController = nav
         }
         else {
-            // User is returning and logged in, so go to main tab bar.
             window?.rootViewController = createTabBarController()
         }
 
@@ -31,51 +29,82 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func createTabBarController() -> UITabBarController {
-        // 1) Replace the direct ConnectionsGameViewController with MiniGamesViewController
+        let tabBarController = ModernTabBarController()
+        
+        let accentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
+        
         let miniGamesVC = MiniGamesViewController()
-        miniGamesVC.tabBarItem = UITabBarItem(
+        let miniGamesNav = UINavigationController(rootViewController: miniGamesVC)
+        let miniGamesItem = UITabBarItem(
             title: "Mini Games",
             image: UIImage(systemName: "gamecontroller"),
             tag: 0
         )
-
-        // 2) Set up the other tabs
+        miniGamesNav.tabBarItem = miniGamesItem
+        
         let resourcesVC = ResourcesViewController()
-        resourcesVC.tabBarItem = UITabBarItem(
+        let resourcesNav = UINavigationController(rootViewController: resourcesVC)
+        let resourcesItem = UITabBarItem(
             title: "Resources",
             image: UIImage(systemName: "book"),
             tag: 1
         )
-
+        resourcesNav.tabBarItem = resourcesItem
+        
         let leaderboardVC = LeaderboardViewController()
-        leaderboardVC.tabBarItem = UITabBarItem(
+        let leaderboardNav = UINavigationController(rootViewController: leaderboardVC)
+        let leaderboardItem = UITabBarItem(
             title: "Leaderboard",
             image: UIImage(systemName: "list.number"),
             tag: 2
         )
-
+        leaderboardNav.tabBarItem = leaderboardItem
+        
         let profileVC = ProfileViewController()
-        profileVC.tabBarItem = UITabBarItem(
+        let profileNav = UINavigationController(rootViewController: profileVC)
+        let profileItem = UITabBarItem(
             title: "Profile",
             image: UIImage(systemName: "person.crop.circle"),
             tag: 3
         )
-
-        // 3) Embed each in a UINavigationController if desired
-        let tabBarController = UITabBarController()
+        profileNav.tabBarItem = profileItem
+        
         tabBarController.viewControllers = [
-            UINavigationController(rootViewController: miniGamesVC),
-            UINavigationController(rootViewController: resourcesVC),
-            UINavigationController(rootViewController: leaderboardVC),
-            UINavigationController(rootViewController: profileVC)
+            miniGamesNav,
+            resourcesNav,
+            leaderboardNav,
+            profileNav
         ]
         
-        // Set the highlighted (selected) tab color to light green.
-        tabBarController.tabBar.tintColor = UIColor(red: 144/255, green: 238/255, blue: 144/255, alpha: 1)
+        tabBarController.tabBar.tintColor = accentColor
+        tabBarController.tabBar.unselectedItemTintColor = UIColor.gray.withAlphaComponent(0.6)
+        tabBarController.accentColor = accentColor
+        
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.backgroundColor = .white
+        
+        tabBarAppearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
+        tabBarAppearance.shadowImage = createShadowImage()
+        
+        tabBarController.tabBar.standardAppearance = tabBarAppearance
+        if #available(iOS 15.0, *) {
+            tabBarController.tabBar.scrollEdgeAppearance = tabBarAppearance
+        }
 
         return tabBarController
     }
-
+    
+    private func createShadowImage() -> UIImage {
+        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
+        UIGraphicsBeginImageContext(rect.size)
+        let context = UIGraphicsGetCurrentContext()
+        context?.setFillColor(UIColor.black.withAlphaComponent(0.1).cgColor)
+        context?.fill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image ?? UIImage()
+    }
 
     private func isFirstLaunch() -> Bool {
         let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
@@ -86,14 +115,101 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     private func isLoggedIn() -> Bool {
-        // Replace with real authentication check
         return UserDefaults.standard.bool(forKey: "isLoggedIn") == true
     }
 
-    // The following methods can remain as-is or as needed.
     func sceneDidDisconnect(_ scene: UIScene) { }
     func sceneDidBecomeActive(_ scene: UIScene) { }
     func sceneWillResignActive(_ scene: UIScene) { }
     func sceneWillEnterForeground(_ scene: UIScene) { }
     func sceneDidEnterBackground(_ scene: UIScene) { }
+}
+
+// MARK: - Modern Tab Bar Controller
+class ModernTabBarController: UITabBarController {
+    
+    var accentColor: UIColor = .systemGreen {
+        didSet {
+            updateSelectionIndicator()
+        }
+    }
+    
+    private var indicatorView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemGreen
+        view.layer.cornerRadius = 2
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private var indicatorCenterXConstraint: NSLayoutConstraint?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupIndicator()
+        delegate = self
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateSelectionIndicator(animated: false)
+    }
+    
+    private func setupIndicator() {
+        tabBar.addSubview(indicatorView)
+        
+        NSLayoutConstraint.activate([
+            indicatorView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: 4),
+            indicatorView.heightAnchor.constraint(equalToConstant: 4),
+            indicatorView.widthAnchor.constraint(equalToConstant: 64)
+        ])
+        
+        indicatorCenterXConstraint = indicatorView.centerXAnchor.constraint(equalTo: tabBar.leadingAnchor)
+        indicatorCenterXConstraint?.isActive = true
+        
+        updateSelectionIndicator(animated: false)
+    }
+    
+    private func updateSelectionIndicator(animated: Bool = true) {
+        guard let items = tabBar.items, let selectedItem = tabBar.selectedItem else { return }
+        
+        guard let index = items.firstIndex(of: selectedItem) else { return }
+        
+        let tabWidth = tabBar.bounds.width / CGFloat(items.count)
+        
+        let centerX = tabWidth * (CGFloat(index) + 0.5)
+        
+        indicatorView.backgroundColor = accentColor
+        
+        indicatorCenterXConstraint?.constant = centerX
+        
+        if animated {
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+                self.tabBar.layoutIfNeeded()
+            })
+        } else {
+            tabBar.layoutIfNeeded()
+        }
+    }
+    
+    private func animateTabSelection() {
+        UIView.animate(withDuration: 0.15, animations: {
+            self.indicatorView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.15) {
+                self.indicatorView.transform = .identity
+            }
+        })
+    }
+}
+
+// MARK: - UITabBarControllerDelegate
+extension ModernTabBarController: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        updateSelectionIndicator()
+        animateTabSelection()
+        
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
 }
