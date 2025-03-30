@@ -33,6 +33,7 @@ class LeaderboardViewController: UIViewController {
         
         titleLabel.text = "Leaderboard"
         titleLabel.font = UIFont(name: "Sen-Regular", size: 24)!
+        titleLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
         
@@ -195,6 +196,7 @@ class LeaderboardCell: UITableViewCell {
         containerView.addSubview(avatarImageView)
         
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 18)!
+        usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0) // Added this line
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(usernameLabel)
         
