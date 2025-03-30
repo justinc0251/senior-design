@@ -59,7 +59,7 @@ class ResourcesViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        animateHeader()
+        // animateHeader()
     }
     
     // MARK: - UI Setup

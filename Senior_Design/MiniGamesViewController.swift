@@ -340,16 +340,44 @@ class MiniGamesViewController: UIViewController {
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
             
-            openGame(at: view.tag)
+            UIView.animate(withDuration: 0.2) {
+                view.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
+                view.layer.shadowOpacity = 0.7
+            } completion: { _ in
+                UIView.animate(withDuration: 0.2) {
+                    view.transform = .identity
+                    view.layer.shadowOpacity = 1.0
+                }
+            }
         }
     }
     
     @objc private func gameButtonTapped(_ sender: UIButton) {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
+    sender.isUserInteractionEnabled = false
+    
+    let generator = UIImpactFeedbackGenerator(style: .medium)
+    generator.impactOccurred()
+    
+    UIView.animateKeyframes(withDuration: 0.5, delay: 0, options: [], animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2) {
+            sender.transform = CGAffineTransform(scaleX: 0.9, y: 0.9).rotated(by: 0.03)
+            sender.alpha = 0.8
+        }
         
-        openGame(at: sender.tag)
+        UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.2) {
+            sender.transform = CGAffineTransform(scaleX: 1.1, y: 1.1).rotated(by: -0.02)
+            sender.alpha = 1.0
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: 0.4, relativeDuration: 0.1) {
+            sender.transform = .identity
+        }
+    }) { _ in
+        self.openGame(at: sender.tag)
+        
+        sender.isUserInteractionEnabled = true
     }
+}
     
     private func openGame(at index: Int) {
         switch index {
