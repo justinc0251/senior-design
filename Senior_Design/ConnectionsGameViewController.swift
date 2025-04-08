@@ -36,104 +36,6 @@ class ConnectionsGameViewController: UIViewController {
         ]
     }
     
-    // Content dictionaries
-    let objectDescriptions: [String: String] = [
-        "recycle1": "Plastic bottles",
-        "recycle2": "Aluminum can",
-        "recycle3": "Cardboard box",
-        "recycle4": "Glass bottle",
-        "recycle5": "Tin can",
-        "recycle6": "Newspaper",
-        "recycle7": "Office paper",
-        "recycle8": "Textbook",
-        "recycle10": "Pizza box",
-        "recycle11": "Plastic containers",
-        "recycle12": "Metal can",
-        "recycle13": "Plastic jug",
-        "recycle14": "Aluminum foil",
-        "recycle15": "Book",
-        "recycle16": "Envelope",
-        "recycle18": "Plastic cup",
-        "recycle19": "Egg carton (paper)",
-        "recycle22": "Milk carton",
-        "recycle23": "Plastic container",
-        "recycle24": "Magazine",
-        "recycle25": "Metal lids",
-        "recycle26": "Glass jar",
-        "recycle27": "Toilet paper roll",
-        "landfill1": "Toothbrushes",
-        "landfill2": "Coffee cup",
-        "landfill3": "Feces",
-        "landfill4": "Cutlery",
-        "landfill5": "Straws",
-        "landfill7": "Broken glass",
-        "landfill8": "Plastic bag",
-        "landfill9": "Diaper",
-        "landfill10": "Food tray",
-        "landfill11": "Pens",
-        "landfill12": "Toothpaste",
-        "landfill13": "Chip bag",
-        "landfill14": "Coffee cup",
-        "landfill15": "Bubble wrap",
-        "landfill16": "Packing peanuts",
-        "landfill17": "Candy wrapper",
-        "landfill18": "Soiled napkin",
-        "landfill19": "Rubber band",
-        "landfill20": "Razor",
-        "landfill21": "Wet Wipes",
-        "compost1": "Fruit scraps",
-        "compost2": "Vegetable peels",
-        "compost3": "Coffee grounds",
-        "compost4": "Tea bags",
-        "compost5": "Eggshells",
-        "compost6": "Grass clippings",
-        "compost7": "Leaves",
-        "compost8": "Plant trimmings",
-        "compost9": "Bread",
-        "compost10": "Pasta",
-        "compost11": "Rice",
-        "compost12": "Nutshells",
-        "compost13": "Paper napkins",
-        "compost14": "Coffee filters",
-        "compost16": "Pizza box (greasy)",
-        "compost17": "Avocado pits",
-        "compost18": "utensils",
-        "compost19": "Nut shells",
-        "compost20": "Expired flower",
-        "compost21": "Corn husk",
-        "compost22": "Wooden chopsticks",
-        "compost23": "Coconut shell",
-        "hazard1": "Batteries",
-        "hazard2": "Motor Oil",
-        "hazard3": "Paint Can",
-        "hazard4": "Fluorescent Light Bulb",
-        "hazard5": "Pesticides",
-        "hazard6": "Herbicides",
-        "hazard7": "Propane Tank",
-        "hazard8": "Cleaning Spray",
-        "hazard9": "Antifreeze",
-        "hazard10": "Laptop",
-        "hazard11": "Mercury Thermometer",
-        "hazard12": "Expired Medicine",
-        "hazard13": "Nail Polish",
-        "hazard14": "Aerosol Can",
-        "hazard15": "Solvent",
-        "hazard16": "Car Battery",
-        "hazard17": "Fertilizers",
-        "hazard18": "Fireworks",
-        "hazard19": "Smoke Detector",
-        "hazard20": "Insecticides",
-        "hazard21": "Lead-based Paint",
-        "hazard22": "Pool Chemicals",
-        "hazard23": "Syringes"
-    ]
-
-    let categories: [String: [String]] = [
-        "recycle": ["recycle1", "recycle2", "recycle3", "recycle4", "recycle5", "recycle6", "recycle7", "recycle8", "recycle10", "recycle11", "recycle12", "recycle13", "recycle14", "recycle15", "recycle16", "recycle18", "recycle19", "recycle22", "recycle23", "recycle24", "recycle25", "recycle26", "recycle27"],
-        "landfill": ["landfill1", "landfill2", "landfill3", "landfill4", "landfill5", "landfill7", "landfill8", "landfill9", "landfill10", "landfill11", "landfill12", "landfill13", "landfill14", "landfill15", "landfill16", "landfill17", "landfill18", "landfill19", "landfill20", "landfill21"],
-        "compost": ["compost1", "compost2", "compost3", "compost4", "compost5", "compost6", "compost7", "compost8", "compost9", "compost10", "compost11", "compost12", "compost13", "compost14", "compost16", "compost17", "compost18", "compost19", "compost20", "compost21", "compost22", "compost23"],
-        "hazard": ["hazard1", "hazard2", "hazard3", "hazard4", "hazard5", "hazard6", "hazard7", "hazard8", "hazard9", "hazard10", "hazard11", "hazard12", "hazard13", "hazard14", "hazard15", "hazard16", "hazard17", "hazard18", "hazard19", "hazard20", "hazard21", "hazard22", "hazard23"]
-    ]
     // MARK: - UI Elements
     
     private let headerView: UIView = {
@@ -497,8 +399,8 @@ class ConnectionsGameViewController: UIViewController {
             
             UIView.transition(with: button, duration: 0.3, options: .transitionFlipFromLeft, animations: {
                 button.setImage(nil, for: .normal)
-                if let imageName = self.buttonImages[button.tag],
-                   let originalDescription = self.objectDescriptions[imageName] {
+                if let imageName = self.buttonImages[button.tag] {
+                    let originalDescription = WasteData.shared.getItemTitle(for: imageName)
                     let words = originalDescription.split(separator: " ")
                     let finalDescription: String
                     if words.count == 2 {
@@ -523,7 +425,7 @@ class ConnectionsGameViewController: UIViewController {
     private func generateCategoryImages() -> [(String, String)] {
         var images: [(String, String)] = []
         
-        for (category, imageNames) in categories {
+        for (category, imageNames) in WasteData.shared.categories {
             let selectedImages = Array(imageNames.shuffled().prefix(4))
             
             for image in selectedImages {
@@ -539,10 +441,46 @@ class ConnectionsGameViewController: UIViewController {
         if categoriesSet.count > 1 {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
+            showMismatchIndicators()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                self.decrementAttempts()
+                self.resetSelections()
+            }
+        }
+    }
+    
+    private func showMismatchIndicators() {
+        for subview in gridContainerView.subviews {
+            if let button = subview as? UIButton {
+                button.isUserInteractionEnabled = false
+            }
+        }
+        
+        for button in selectedButtons {
+            let xMarkView = UIImageView(image: UIImage(systemName: "xmark"))
+            xMarkView.tintColor = UIColor.red
+            xMarkView.contentMode = .scaleAspectFit
+            xMarkView.translatesAutoresizingMaskIntoConstraints = false
+            xMarkView.alpha = 0
+            xMarkView.tag = 888
             
-            showMismatchAlert()
-            decrementAttempts()
-            resetSelections()
+            button.backgroundColor = UIColor.red.withAlphaComponent(0.2)
+            button.layer.borderWidth = 2
+            button.layer.borderColor = UIColor.red.cgColor
+            
+            button.addSubview(xMarkView)
+            
+            NSLayoutConstraint.activate([
+                xMarkView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+                xMarkView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+                xMarkView.widthAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.5),
+                xMarkView.heightAnchor.constraint(equalTo: button.heightAnchor, multiplier: 0.5)
+            ])
+            
+            UIView.animate(withDuration: 0.2) {
+                xMarkView.alpha = 1
+                button.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            }
         }
     }
     
@@ -561,14 +499,18 @@ class ConnectionsGameViewController: UIViewController {
             disableButtons()
             selectedButtons.removeAll()
             
-            if completedCategories.count == categories.count {
+            if completedCategories.count == WasteData.shared.categories.count {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.showWinAlert()
                 }
             }
         } else {
-            decrementAttempts()
-            resetSelections()
+            showMismatchIndicators()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                self.decrementAttempts()
+                self.resetSelections()
+            }
         }
     }
     
@@ -634,9 +576,21 @@ class ConnectionsGameViewController: UIViewController {
                 button.backgroundColor = Theme.cardColor
                 button.transform = .identity
                 button.layer.borderWidth = 0
+                
+                button.subviews.forEach { subview in
+                    if subview.tag == 888 {
+                        subview.removeFromSuperview()
+                    }
+                }
             }
         }
         selectedButtons.removeAll()
+        
+        for subview in gridContainerView.subviews {
+            if let button = subview as? UIButton, button.isEnabled {
+                button.isUserInteractionEnabled = true
+            }
+        }
     }
     
     // MARK: - Timer Methods
@@ -675,16 +629,6 @@ class ConnectionsGameViewController: UIViewController {
     
     // MARK: - Game State Alerts
     
-    private func showMismatchAlert() {
-        let alert = UIAlertController(
-            title: "Mismatch!",
-            message: "The selected tiles are not from the same category. Try again!",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-    
     private func showWinAlert() {
         gameTimer?.invalidate()
         updateUserScore(10)
@@ -701,13 +645,129 @@ class ConnectionsGameViewController: UIViewController {
     private func showGameOverAlert(reason: String) {
         gameTimer?.invalidate()
         
-        let alert = UIAlertController(
-            title: "Game Over",
-            message: reason,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Try Again", style: .default) { _ in self.resetGame() })
-        present(alert, animated: true)
+        view.subviews.forEach { view in
+            if view.tag == 999 {
+                view.removeFromSuperview()
+            }
+        }
+        
+        selectedButtons.forEach { button in
+            button.backgroundColor = Theme.cardColor
+            button.transform = .identity
+            button.layer.borderWidth = 0
+            
+            button.subviews.forEach { subview in
+                if subview.tag == 888 {
+                    subview.removeFromSuperview()
+                }
+            }
+        }
+        selectedButtons.removeAll()
+        
+        revealCorrectAnswers()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            let overlayView = UIView()
+            overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.75)
+            overlayView.alpha = 0
+            overlayView.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.tag = 999
+            self.view.addSubview(overlayView)
+            
+            let gameOverLabel = UILabel()
+            gameOverLabel.text = "Game Over"
+            gameOverLabel.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+            gameOverLabel.textColor = .white
+            gameOverLabel.textAlignment = .center
+            gameOverLabel.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.addSubview(gameOverLabel)
+            
+            let reasonLabel = UILabel()
+            reasonLabel.text = reason
+            reasonLabel.font = UIFont(name: "Sen-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18)
+            reasonLabel.textColor = .white
+            reasonLabel.textAlignment = .center
+            reasonLabel.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.addSubview(reasonLabel)
+            
+            let tryAgainButton = UIButton(type: .system)
+            tryAgainButton.setTitle("Try Again", for: .normal)
+            tryAgainButton.setTitleColor(.white, for: .normal)
+            tryAgainButton.backgroundColor = ConnectionsGameViewController.Theme.accentColor
+            tryAgainButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+            tryAgainButton.layer.cornerRadius = 20
+            tryAgainButton.translatesAutoresizingMaskIntoConstraints = false
+            tryAgainButton.addTarget(self, action: #selector(self.tryAgainTapped), for: .touchUpInside)
+            overlayView.addSubview(tryAgainButton)
+            
+            NSLayoutConstraint.activate([
+                overlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
+                overlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                overlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                overlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                
+                gameOverLabel.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+                gameOverLabel.topAnchor.constraint(equalTo: self.headerView.bottomAnchor, constant: 30),
+                
+                reasonLabel.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+                reasonLabel.topAnchor.constraint(equalTo: gameOverLabel.bottomAnchor, constant: 10),
+                
+                tryAgainButton.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+                tryAgainButton.widthAnchor.constraint(equalToConstant: 180),
+                tryAgainButton.heightAnchor.constraint(equalToConstant: 50),
+                tryAgainButton.bottomAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: -100)
+            ])
+            
+            UIView.animate(withDuration: 0.5) {
+                overlayView.alpha = 1
+            }
+        }
+    }
+    
+    @objc private func tryAgainTapped() {
+        view.subviews.forEach { view in
+            if view.tag == 999 {
+                UIView.animate(withDuration: 0.3, animations: {
+                    view.alpha = 0
+                }) { _ in
+                    view.removeFromSuperview()
+                }
+            }
+        }
+        
+        restartGame()
+    }
+
+    private func revealCorrectAnswers() {
+        var buttonsByCategory: [String: [UIButton]] = [:]
+        
+        for subview in gridContainerView.subviews {
+            if let button = subview as? UIButton, 
+            let category = buttonCategories[button.tag],
+            !completedCategories.contains(category) {
+                if buttonsByCategory[category] == nil {
+                    buttonsByCategory[category] = []
+                }
+                buttonsByCategory[category]?.append(button)
+            }
+        }
+        
+        for (category, buttons) in buttonsByCategory {
+            let borderColor = Theme.categoryColors[category] ?? Theme.accentColor
+            let delayInterval = 0.3
+            
+            for (index, button) in buttons.enumerated() {
+                UIView.animate(withDuration: 0.5, 
+                            delay: Double(index) * delayInterval, 
+                            options: [], 
+                            animations: {
+                    button.layer.borderWidth = 4
+                    button.layer.borderColor = borderColor.cgColor
+                    button.backgroundColor = borderColor.withAlphaComponent(0.3)
+                    button.alpha = 0.8
+                })
+            }
+        }
     }
     
     // MARK: - Actions
