@@ -107,11 +107,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     private func isFirstLaunch() -> Bool {
-        let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
-        if !hasLaunchedBefore {
-            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        if !hasCompletedOnboarding {
+            return true
         }
-        return !hasLaunchedBefore
+        return false
     }
 
     private func isLoggedIn() -> Bool {

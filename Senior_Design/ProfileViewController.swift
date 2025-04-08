@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class ProfileViewController: UIViewController {
     
@@ -19,17 +20,114 @@ class ProfileViewController: UIViewController {
     private let accentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
     private let secondaryColor = UIColor(red: 87/255, green: 155/255, blue: 252/255, alpha: 1.0)
     
+    private var currentUserId: String?
+    private var userData: [String: Any]?
+    private var followingCount: Int = 0
+    private var followersCount: Int = 0
+    
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTheme()
         setupUI()
+        fetchUserData()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        fetchUserData()
+    }
+    
+    // MARK: - Data Fetching
+    private func fetchUserData() {
+        guard let currentUser = Auth.auth().currentUser else {
+            print("Error: No authenticated user found")
+            return
+        }
+        
+        let userId = currentUser.uid
+        currentUserId = userId
+        let db = Firestore.firestore()
+            
+        // Fetch user profile data
+        db.collection("users").document(userId).getDocument { [weak self] snapshot, error in
+            guard let self = self, let data = snapshot?.data() else {
+                print("Error fetching user data: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            self.userData = data
+            
+            // Update UI on main thread
+            DispatchQueue.main.async {
+                self.updateUIWithUserData()
+            }
+        }
+        
+        // Fetch following count
+        db.collection("friendRequests")
+            .whereField("fromUserId", isEqualTo: userId)
+            .whereField("status", isEqualTo: "accepted")
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { return }
+                self.followingCount = snapshot?.documents.count ?? 0
+                
+                DispatchQueue.main.async {
+                    if let titleLabel = self.followingContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                        titleLabel.text = "\(self.followingCount)"
+                    }
+                }
+            }
+        
+        // Fetch followers count
+        db.collection("friendRequests")
+            .whereField("toUserId", isEqualTo: userId)
+            .whereField("status", isEqualTo: "accepted")
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { return }
+                self.followersCount = snapshot?.documents.count ?? 0
+                
+                DispatchQueue.main.async {
+                    if let titleLabel = self.followersContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                        titleLabel.text = "\(self.followersCount)"
+                    }
+                }
+            }
+    }
+
+     private func updateUIWithUserData() {
+        guard let userData = userData else { return }
+        
+        // Update name
+        if let name = userData["name"] as? String {
+            nameLabel.text = name
+            
+            // Update avatar initial if using first letter of name
+            if let initial = name.first, let avatarLabel = profileImageView.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                avatarLabel.text = String(initial)
+            }
+        }
+        
+        // Update username
+        if let username = userData["username"] as? String {
+            usernameLabel.text = "@\(username)"
+        }
+        
+        // Update join date if available
+        if let joinTimestamp = userData["createdAt"] as? Timestamp {
+            let date = joinTimestamp.dateValue()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMM yyyy"
+            let joinDateString = dateFormatter.string(from: date)
+            joinDateLabel.text = "• Joined \(joinDateString)"
+        }
     }
     
     // MARK: - UI Setup
     private func setupTheme() {
         view.backgroundColor = UIColor(white: 0.98, alpha: 1.0)
         
+        // Settings button
         let settingsButton = UIBarButtonItem(
             image: UIImage(systemName: "gearshape"),
             style: .plain,
@@ -37,7 +135,18 @@ class ProfileViewController: UIViewController {
             action: #selector(handleSettings)
         )
         settingsButton.tintColor = accentColor
-        navigationItem.rightBarButtonItem = settingsButton
+        
+        // Friend requests button - add as a mail icon in the navigation bar
+        let friendRequestsButton = UIBarButtonItem(
+            image: UIImage(systemName: "envelope"),
+            style: .plain,
+            target: self,
+            action: #selector(handleViewFriendRequests)
+        )
+        friendRequestsButton.tintColor = accentColor
+        
+        // Set both buttons to the right side of the navigation bar
+        navigationItem.rightBarButtonItems = [settingsButton, friendRequestsButton]
         
         navigationItem.backButtonTitle = ""
         navigationController?.navigationBar.tintColor = accentColor
@@ -67,26 +176,44 @@ class ProfileViewController: UIViewController {
         profileImageView.layer.shadowOpacity = 1
         view.addSubview(profileImageView)
         
+        // Add avatar label for initials
+        let avatarLabel = UILabel()
+        avatarLabel.font = UIFont.systemFont(ofSize: 30, weight: .bold)
+        avatarLabel.textColor = .white
+        avatarLabel.textAlignment = .center
+        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
+        profileImageView.addSubview(avatarLabel)
+        
+        NSLayoutConstraint.activate([
+            avatarLabel.centerXAnchor.constraint(equalTo: profileImageView.centerXAnchor),
+            avatarLabel.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor)
+        ])
+        
         nameLabel = UILabel()
-        nameLabel.text = "Justin Chung"
+        nameLabel.text = "" 
         nameLabel.font = UIFont(name: "Sen-Regular", size: 28)
         nameLabel.textColor = .black
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(nameLabel)
         
         usernameLabel = UILabel()
-        usernameLabel.text = "@jastinc4"
+        usernameLabel.text = "" 
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 16)
         usernameLabel.textColor = .darkGray
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(usernameLabel)
         
         joinDateLabel = UILabel()
-        joinDateLabel.text = "• Joined Mar 2025"
+        joinDateLabel.text = "" 
         joinDateLabel.font = UIFont(name: "Sen-Regular", size: 16)
         joinDateLabel.textColor = .darkGray
         joinDateLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(joinDateLabel)
+        
+        // Optional: Add loading placeholders while data is fetched
+        nameLabel.text = "Loading..."
+        usernameLabel.text = "@..."
+        joinDateLabel.text = "• Joined ..."
     }
     
     private func setupStatsView() {
@@ -100,7 +227,8 @@ class ProfileViewController: UIViewController {
         statsContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statsContainerView)
         
-        followingContainer = createStatContainer(title: "2", subtitle: "Following")
+        // Use "0" as default values that will be updated when data loads
+        followingContainer = createStatContainer(title: "0", subtitle: "Following")
         statsContainerView.addSubview(followingContainer)
         
         let separator = UIView()
@@ -108,8 +236,9 @@ class ProfileViewController: UIViewController {
         separator.translatesAutoresizingMaskIntoConstraints = false
         statsContainerView.addSubview(separator)
         
-        followersContainer = createStatContainer(title: "4", subtitle: "Followers")
+        followersContainer = createStatContainer(title: "0", subtitle: "Followers")
         statsContainerView.addSubview(followersContainer)
+        
         
         NSLayoutConstraint.activate([
             followingContainer.leadingAnchor.constraint(equalTo: statsContainerView.leadingAnchor),
@@ -125,7 +254,8 @@ class ProfileViewController: UIViewController {
             followersContainer.trailingAnchor.constraint(equalTo: statsContainerView.trailingAnchor),
             followersContainer.topAnchor.constraint(equalTo: statsContainerView.topAnchor),
             followersContainer.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor),
-            followersContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5)
+            followersContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5),
+            
         ])
     }
     
@@ -249,26 +379,82 @@ class ProfileViewController: UIViewController {
         
         present(alertController, animated: true, completion: nil)
     }
+
+    private func showAlert(title: String, message: String) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alertController, animated: true)
+    }
     
     @objc private func handleEditProfile() {
         let alertController = UIAlertController(title: "Edit Profile", message: nil, preferredStyle: .alert)
         
+        // Get current values to show in text fields
+        let currentName = nameLabel.text ?? ""
+        let currentUsername = usernameLabel.text?.replacingOccurrences(of: "@", with: "") ?? ""
+        
         alertController.addTextField { textField in
             textField.placeholder = "Name"
-            textField.text = self.nameLabel.text
+            textField.text = currentName
         }
         
         alertController.addTextField { textField in
             textField.placeholder = "Username"
-            textField.text = self.usernameLabel.text
+            textField.text = currentUsername
         }
         
-        let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
-            if let nameText = alertController.textFields?[0].text, !nameText.isEmpty {
-                self.nameLabel.text = nameText
+        let saveAction = UIAlertAction(title: "Save", style: .default) { [weak self] _ in
+            guard let self = self,
+                let userId = self.currentUserId,
+                let nameTextField = alertController.textFields?[0],
+                let usernameTextField = alertController.textFields?[1],
+                let newName = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                let newUsername = usernameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                !newName.isEmpty, !newUsername.isEmpty else {
+                self?.showAlert(title: "Error", message: "Name and username cannot be empty")
+                return
             }
-            if let usernameText = alertController.textFields?[1].text, !usernameText.isEmpty {
-                self.usernameLabel.text = usernameText
+            
+            // Update Firestore
+            let db = Firestore.firestore()
+            let userRef = db.collection("users").document(userId)
+            
+            let updates: [String: Any] = [
+                "name": newName,
+                "username": newUsername
+            ]
+            
+            userRef.updateData(updates) { [weak self] error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    self.showAlert(title: "Error", message: "Failed to update profile: \(error.localizedDescription)")
+                    return
+                }
+                
+                // Update UI after successful Firestore update
+                DispatchQueue.main.async {
+                    self.nameLabel.text = newName
+                    self.usernameLabel.text = "@\(newUsername)"
+                    
+                    // Update avatar initial if using first letter of name
+                    if let initial = newName.first, 
+                    let avatarLabel = self.profileImageView.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                        avatarLabel.text = String(initial)
+                    }
+                    
+                    // Update local userData cache
+                    self.userData?["name"] = newName
+                    self.userData?["username"] = newUsername
+                    
+                    // Store in UserDefaults (for Apple Sign In users)
+                    if let uid = Auth.auth().currentUser?.uid {
+                        UserDefaults.standard.set(newName, forKey: "apple_user_name_\(uid)")
+                    }
+                    
+                    // Show success message
+                    self.showToast(message: "Profile updated successfully!")
+                }
             }
         }
         
@@ -280,27 +466,88 @@ class ProfileViewController: UIViewController {
         present(alertController, animated: true, completion: nil)
     }
     
+    private func showToast(message: String) {
+        let toastView = UIView()
+        toastView.backgroundColor = accentColor
+        toastView.alpha = 0
+        toastView.layer.cornerRadius = 8
+        toastView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(toastView)
+        
+        let label = UILabel()
+        label.text = message
+        label.textColor = .white
+        label.font = UIFont(name: "Sen-Regular", size: 14)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        toastView.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            toastView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            toastView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            toastView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
+            toastView.heightAnchor.constraint(equalToConstant: 44),
+            
+            label.leadingAnchor.constraint(equalTo: toastView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: toastView.trailingAnchor, constant: -16),
+            label.centerYAnchor.constraint(equalTo: toastView.centerYAnchor)
+        ])
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            toastView.alpha = 1
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.3, delay: 2.0, options: [], animations: {
+                toastView.alpha = 0
+            }, completion: { _ in
+                toastView.removeFromSuperview()
+            })
+        })
+    }
+    
     @objc private func handleLogout() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
-        UserDefaults.standard.set(false, forKey: "isLoggedIn")
-        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-            let loginVC = LoginViewController()
-            let nav = UINavigationController(rootViewController: loginVC)
-            sceneDelegate.window?.rootViewController = nav
-        }
+        // Confirm logout
+        let alert = UIAlertController(title: "Log Out", message: "Are you sure you want to log out?", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Log Out", style: .destructive) { _ in
+            // Perform logout
+            do {
+                try Auth.auth().signOut()
+                UserDefaults.standard.set(false, forKey: "isLoggedIn")
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                    let loginVC = LoginViewController()
+                    let nav = UINavigationController(rootViewController: loginVC)
+                    sceneDelegate.window?.rootViewController = nav
+                }
+            } catch {
+                self.showAlert(title: "Error", message: "Failed to log out: \(error.localizedDescription)")
+            }
+        })
+        
+        present(alert, animated: true)
     }
     
     @objc private func handleAddFriends() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
-        let searchVC = ModernUserSearchViewController()
+        let searchVC = UserSearchViewController()
         searchVC.accentColor = secondaryColor
         let nav = UINavigationController(rootViewController: searchVC)
         nav.modalPresentationStyle = .formSheet
         present(nav, animated: true)
+    }
+    
+    @objc private func handleViewFriendRequests() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        let requestsVC = FriendRequestsViewController()
+        requestsVC.accentColor = secondaryColor
+        navigationController?.pushViewController(requestsVC, animated: true)
     }
     
     @objc private func handleShare() {
@@ -310,432 +557,5 @@ class ProfileViewController: UIViewController {
         let items = ["Check out my waste learning progress!"]
         let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(activityController, animated: true)
-    }
-}
-
-// MARK: - Modern User Search
-class ModernUserSearchViewController: UIViewController {
-    
-    private let searchBar = UISearchBar()
-    private let tableView = UITableView()
-    private let emptyStateView = UIView()
-    private let activityIndicator = UIActivityIndicatorView(style: .medium)
-    
-    var accentColor: UIColor = .systemBlue
-    
-    private var searchResults: [(username: String, name: String, userId: String)] = []
-    private var isSearching = false
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-    }
-    
-    private func setupUI() {
-        title = "Find Friends"
-        view.backgroundColor = .white
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .cancel,
-            target: self,
-            action: #selector(dismissSearch)
-        )
-        
-        // Search Bar
-        searchBar.placeholder = "Search by username or name"
-        searchBar.delegate = self
-        searchBar.searchTextField.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
-        searchBar.tintColor = accentColor
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(searchBar)
-        
-        // Table View
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = .white
-        tableView.register(SearchResultCell.self, forCellReuseIdentifier: "SearchResultCell")
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(tableView)
-        
-        // Empty State
-        setupEmptyState()
-        
-        // Activity Indicator
-        activityIndicator.hidesWhenStopped = true
-        activityIndicator.color = accentColor
-        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(activityIndicator)
-        
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-    }
-    
-    private func setupEmptyState() {
-        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(emptyStateView)
-        
-        let imageView = UIImageView(image: UIImage(systemName: "person.3"))
-        imageView.tintColor = UIColor(white: 0.8, alpha: 1.0)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateView.addSubview(imageView)
-        
-        let label = UILabel()
-        label.text = "Search for users to add as friends"
-        label.textColor = .darkGray
-        label.font = UIFont(name: "Sen-Regular", size: 16)
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateView.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            emptyStateView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
-            
-            imageView.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
-            imageView.topAnchor.constraint(equalTo: emptyStateView.topAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 60),
-            imageView.heightAnchor.constraint(equalToConstant: 60),
-            
-            label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16),
-            label.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor),
-            label.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor),
-            label.bottomAnchor.constraint(equalTo: emptyStateView.bottomAnchor)
-        ])
-        
-        updateEmptyStateVisibility()
-    }
-    
-    private func updateEmptyStateVisibility() {
-        emptyStateView.isHidden = isSearching || !searchResults.isEmpty
-    }
-    
-    private func searchUsers(with query: String) {
-        guard !query.isEmpty else {
-            searchResults = []
-            tableView.reloadData()
-            updateEmptyStateVisibility()
-            return
-        }
-        
-        isSearching = true
-        activityIndicator.startAnimating()
-        updateEmptyStateVisibility()
-        
-        // Get reference to Firestore
-        let db = Firestore.firestore()
-        
-        // Search users where username or name contains the query
-        let lowercaseQuery = query.lowercased()
-        
-        db.collection("users")
-            .whereField("searchTerms", arrayContains: lowercaseQuery)
-            .limit(to: 20)
-            .getDocuments { [weak self] snapshot, error in
-                guard let self = self else { return }
-                
-                self.isSearching = false
-                self.activityIndicator.stopAnimating()
-                
-                if let error = error {
-                    print("Error searching for users: \(error.localizedDescription)")
-                    self.searchResults = []
-                } else if let documents = snapshot?.documents, !documents.isEmpty {
-                    // Map Firestore documents to searchResults format
-                    self.searchResults = documents.compactMap { doc -> (username: String, name: String, userId: String)? in
-                        let data = doc.data()
-                        guard let username = data["username"] as? String,
-                              let name = data["name"] as? String else {
-                            return nil
-                        }
-                        return (username: username, name: name, userId: doc.documentID)
-                    }
-                } else {
-                    self.searchResults = []
-                }
-                
-                self.tableView.reloadData()
-                self.updateEmptyStateVisibility()
-            }
-    }
-    
-    @objc private func dismissSearch() {
-        dismiss(animated: true)
-    }
-    
-    private func sendFriendRequest(to userId: String, username: String) {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-        
-        // Get current user ID
-        guard let currentUserId = UserDefaults.standard.string(forKey: "currentUserId") else {
-            showError(message: "You need to be logged in to add friends")
-            return
-        }
-        
-        let db = Firestore.firestore()
-        
-        // Create friend request document
-        let requestData: [String: Any] = [
-            "fromUserId": currentUserId,
-            "toUserId": userId,
-            "status": "pending",
-            "timestamp": FieldValue.serverTimestamp()
-        ]
-        
-        db.collection("friendRequests").addDocument(data: requestData) { [weak self] error in
-            if let error = error {
-                self?.showError(message: "Error sending friend request: \(error.localizedDescription)")
-                return
-            }
-            
-            // Show success message
-            self?.showSuccessMessage(username: username)
-        }
-    }
-    
-    private func showSuccessMessage(username: String) {
-        // Show success toast
-        let successView = UIView()
-        successView.backgroundColor = accentColor
-        successView.alpha = 0
-        successView.layer.cornerRadius = 8
-        successView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(successView)
-        
-        let checkmark = UIImageView(image: UIImage(systemName: "checkmark"))
-        checkmark.tintColor = .white
-        checkmark.contentMode = .scaleAspectFit
-        checkmark.translatesAutoresizingMaskIntoConstraints = false
-        successView.addSubview(checkmark)
-        
-        let label = UILabel()
-        label.text = "Friend request sent to @\(username)!"
-        label.textColor = .white
-        label.font = UIFont(name: "Sen-Regular", size: 14)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        successView.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            successView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            successView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            successView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
-            successView.heightAnchor.constraint(equalToConstant: 44),
-            
-            checkmark.leadingAnchor.constraint(equalTo: successView.leadingAnchor, constant: 16),
-            checkmark.centerYAnchor.constraint(equalTo: successView.centerYAnchor),
-            checkmark.widthAnchor.constraint(equalToConstant: 20),
-            checkmark.heightAnchor.constraint(equalToConstant: 20),
-            
-            label.leadingAnchor.constraint(equalTo: checkmark.trailingAnchor, constant: 8),
-            label.trailingAnchor.constraint(equalTo: successView.trailingAnchor, constant: -16),
-            label.centerYAnchor.constraint(equalTo: successView.centerYAnchor)
-        ])
-        
-        UIView.animate(withDuration: 0.3, animations: {
-            successView.alpha = 1
-        }, completion: { _ in
-            UIView.animate(withDuration: 0.3, delay: 2.0, options: [], animations: {
-                successView.alpha = 0
-            }, completion: { _ in
-                successView.removeFromSuperview()
-            })
-        })
-    }
-    
-    private func showError(message: String) {
-        let alertController = UIAlertController(
-            title: "Error",
-            message: message,
-            preferredStyle: .alert
-        )
-        
-        alertController.addAction(UIAlertAction(
-            title: "OK",
-            style: .default
-        ))
-        
-        present(alertController, animated: true)
-    }
-}
-
-// MARK: - UISearchBarDelegate
-extension ModernUserSearchViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchUsers(with: searchText)
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
-    }
-}
-
-// MARK: - UITableViewDelegate, UITableViewDataSource
-extension ModernUserSearchViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchResults.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "SearchResultCell", for: indexPath) as? SearchResultCell else {
-            return UITableViewCell()
-        }
-        
-        let result = searchResults[indexPath.row]
-        cell.configure(username: result.username, name: result.name, accentColor: accentColor)
-        
-        cell.onAddFriend = { [weak self] in
-            self?.sendFriendRequest(to: result.userId, username: result.username)
-        }
-        
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80
-    }
-}
-
-// MARK: - Search Result Cell
-class SearchResultCell: UITableViewCell {
-    
-    private let avatarView = UIView()
-    private let avatarLabel = UILabel()
-    private let nameLabel = UILabel()
-    private let usernameLabel = UILabel()
-    private let addButton = UIButton(type: .system)
-    
-    var onAddFriend: (() -> Void)?
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupCell()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupCell() {
-        selectionStyle = .none
-        backgroundColor = .white
-        
-        // Avatar View
-        avatarView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
-        avatarView.layer.cornerRadius = 25
-        avatarView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(avatarView)
-        
-        // Avatar Label
-        avatarLabel.font = UIFont(name: "Sen-Regular", size: 18)
-        avatarLabel.textColor = .white
-        avatarLabel.textAlignment = .center
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarView.addSubview(avatarLabel)
-        
-        // Name Label
-        nameLabel.font = UIFont(name: "Sen-Regular", size: 16)
-        nameLabel.textColor = .black
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(nameLabel)
-        
-        // Username Label
-        usernameLabel.font = UIFont(name: "Sen-Regular", size: 14)
-        usernameLabel.textColor = .darkGray
-        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(usernameLabel)
-        
-        // Add Button
-        addButton.setImage(UIImage(systemName: "person.badge.plus"), for: .normal)
-        addButton.backgroundColor = .clear
-        addButton.layer.cornerRadius = 15
-        addButton.layer.borderWidth = 1
-        addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        addButton.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(addButton)
-        
-        NSLayoutConstraint.activate([
-            avatarView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.widthAnchor.constraint(equalToConstant: 50),
-            avatarView.heightAnchor.constraint(equalToConstant: 50),
-            
-            avatarLabel.centerXAnchor.constraint(equalTo: avatarView.centerXAnchor),
-            avatarLabel.centerYAnchor.constraint(equalTo: avatarView.centerYAnchor),
-            
-            nameLabel.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 12),
-            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            nameLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -12),
-            
-            usernameLabel.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 12),
-            usernameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-            usernameLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -12),
-            
-            addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            addButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            addButton.widthAnchor.constraint(equalToConstant: 30),
-            addButton.heightAnchor.constraint(equalToConstant: 30)
-        ])
-        
-        // Add separator
-        let separator = UIView()
-        separator.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
-        separator.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(separator)
-        
-        NSLayoutConstraint.activate([
-            separator.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            separator.heightAnchor.constraint(equalToConstant: 0.5)
-        ])
-    }
-    
-    func configure(username: String, name: String, accentColor: UIColor) {
-        nameLabel.text = name
-        usernameLabel.text = "@\(username)"
-        
-        // Create avatar with initials
-        if let initial = name.first {
-            avatarLabel.text = String(initial)
-        }
-        
-        avatarView.backgroundColor = accentColor
-        addButton.tintColor = accentColor
-        addButton.layer.borderColor = accentColor.cgColor
-    }
-    
-    @objc private func addButtonTapped() {
-        onAddFriend?()
-        
-        // Provide visual feedback
-        UIView.animate(withDuration: 0.1, animations: {
-            self.addButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        }, completion: { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.addButton.transform = .identity
-            }
-        })
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        nameLabel.text = nil
-        usernameLabel.text = nil
-        avatarLabel.text = nil
-        onAddFriend = nil
     }
 }

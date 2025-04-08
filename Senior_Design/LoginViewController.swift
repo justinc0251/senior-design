@@ -35,7 +35,7 @@ class LoginViewController: UIViewController {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Welcome Back!"
+        label.text = "Welcome!"
         label.textColor = Theme.primaryText
         label.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
         label.textAlignment = .center
@@ -111,19 +111,21 @@ class LoginViewController: UIViewController {
         return button
     }()
     
-    private let rememberMeView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let rememberMeCheckbox: UIButton = {
+       private let rememberMeCheckbox: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(systemName: "square"), for: .normal)
         button.setImage(UIImage(systemName: "checkmark.square.fill"), for: .selected)
         button.tintColor = Theme.accentColor
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.isUserInteractionEnabled = true // Ensure interaction is enabled
         return button
+    }()
+    
+    private let rememberMeView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true // Ensure interaction is enabled
+        return view
     }()
     
     private let rememberMeLabel: UILabel = {
@@ -352,7 +354,8 @@ class LoginViewController: UIViewController {
         NSLayoutConstraint.activate([
             rememberMeView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 12),
             rememberMeView.leadingAnchor.constraint(equalTo: emailTextField.leadingAnchor),
-            rememberMeView.heightAnchor.constraint(equalToConstant: 24),
+            rememberMeView.heightAnchor.constraint(equalToConstant: 30), // Increase height
+            rememberMeView.widthAnchor.constraint(equalToConstant: 120), // Set explicit width to make tap area larger
             
             rememberMeCheckbox.leadingAnchor.constraint(equalTo: rememberMeView.leadingAnchor),
             rememberMeCheckbox.centerYAnchor.constraint(equalTo: rememberMeView.centerYAnchor),
@@ -428,7 +431,21 @@ class LoginViewController: UIViewController {
     
     @objc private func rememberMeTapped(_ sender: UIButton) {
         sender.isSelected.toggle()
-        animateButtonPress(sender)
+        
+        // Provide haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        // Show animation
+        UIView.animate(withDuration: 0.1, animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                sender.transform = .identity
+            }
+        }
+        
+        print("Remember me is now: \(sender.isSelected ? "checked" : "unchecked")")
     }
     
     @objc private func rememberMeViewTapped() {
@@ -445,17 +462,69 @@ class LoginViewController: UIViewController {
     
     @objc private func loginTapped() {
         animateButtonPress(loginButton)
-        // Implement your login logic here
+        
+        // Get email and password from text fields
+        guard let email = emailTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty else {
+            showAlert(title: "Error", message: "Please enter your email")
+            return
+        }
+        
+        guard let password = passwordTextField.text, !password.isEmpty else {
+            showAlert(title: "Error", message: "Please enter your password")
+            return
+        }
+        
+        // Show a loading indicator
+        let activityIndicator = UIActivityIndicatorView(style: .medium)
+        activityIndicator.center = view.center
+        activityIndicator.startAnimating()
+        view.addSubview(activityIndicator)
+        
+        // Disable interaction during API call
+        view.isUserInteractionEnabled = false
+        
+        // Sign in with Firebase
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
+            guard let self = self else { return }
+            
+            // Re-enable interaction and remove loading indicator
+            self.view.isUserInteractionEnabled = true
+            activityIndicator.removeFromSuperview()
+            
+            if let error = error {
+                self.showAlert(title: "Sign In Error", message: error.localizedDescription)
+                return
+            }
+            
+            guard let user = authResult?.user else {
+                self.showAlert(title: "Error", message: "Unable to retrieve user information")
+                return
+            }
+            
+            // Save user ID to UserDefaults
+            UserDefaults.standard.set(user.uid, forKey: "currentUserId")
+            
+            // Handle "Remember Me" option
+            if self.rememberMeCheckbox.isSelected {
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+            }
+            
+            // Transition to main app
+            self.transitionToMainApp()
+        }
     }
     
     @objc private func forgotPasswordTapped() {
         animateButtonPress(forgotPasswordButton)
-        // Implement your forgot password logic here
+        let forgotPasswordVC = ForgotPasswordViewController()
+        navigationController?.pushViewController(forgotPasswordVC, animated: true)
     }
     
+    // Add this to the loginTapped method in LoginViewController.swift
     @objc private func signUpTapped() {
         animateButtonPress(signUpButton)
-        // Implement your sign up navigation logic here
+        let signUpVC = SignUpViewController()
+        navigationController?.pushViewController(signUpVC, animated: true)
     }
     
     @objc private func handleGoogleSignIn() {
@@ -509,7 +578,14 @@ class LoginViewController: UIViewController {
         
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { [weak self] signInResult, error in
             guard let self = self else { return }
+            
+            // Check for error or cancellation
             if let error = error {
+                // Don't show alert for user cancellations
+                if let gidError = error as? GIDSignInError, gidError.code == .canceled {
+                    print("Google Sign In was canceled by the user")
+                    return
+                }
                 self.showAlert(title: "Sign-In Error", message: error.localizedDescription)
                 return
             }
@@ -543,6 +619,7 @@ class LoginViewController: UIViewController {
         }
     }
     
+    // Update the saveUserData method for Google Sign-In
     private func saveUserData(firebaseUser: User, user: GIDGoogleUser) {
         let db = Firestore.firestore()
         let userDoc = db.collection("users").document(firebaseUser.uid)
@@ -561,12 +638,43 @@ class LoginViewController: UIViewController {
                 "provider": "google"
             ]
             
-            // Check if the document exists and retrieve the score
-            if let document = document, document.exists, let existingScore = document.data()?["score"] as? Int {
-                userData["score"] = existingScore
-            } else {
-                userData["score"] = 0
+            // Add username if none exists
+            if document?.data()?["username"] == nil {
+                userData["username"] = self?.generateUsername(from: user.profile?.name ?? "Anonymous") ?? "user123"
             }
+            
+            // Initialize followers and following arrays if they don't exist
+            if let document = document, document.exists {
+                let existingData = document.data() ?? [:]
+                
+                // Preserve existing score
+                if let existingScore = existingData["score"] as? Int {
+                    userData["score"] = existingScore
+                } else {
+                    userData["score"] = 0
+                }
+                
+                // Preserve existing followers and following arrays
+                if let followers = existingData["followers"] as? [String] {
+                    userData["followers"] = followers
+                } else {
+                    userData["followers"] = []
+                }
+                
+                if let following = existingData["following"] as? [String] {
+                    userData["following"] = following
+                } else {
+                    userData["following"] = []
+                }
+            } else {
+                // New user - set default values
+                userData["score"] = 0
+                userData["followers"] = []
+                userData["following"] = []
+            }
+            
+            // Save Firebase UID to UserDefaults for easy access
+            UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
             
             userDoc.setData(userData, merge: true) { [weak self] error in
                 if let error = error {
@@ -580,56 +688,68 @@ class LoginViewController: UIViewController {
         }
     }
     
-    // Handle saving Apple sign in user data
-    private func saveAppleUserData(firebaseUser: User, name: String?, email: String?) {
-        let db = Firestore.firestore()
-        let userDoc = db.collection("users").document(firebaseUser.uid)
-        
-        userDoc.getDocument { [weak self] document, error in
-            if let error = error {
-                self?.showAlert(title: "Error", message: "Failed to retrieve user data: \(error.localizedDescription)")
+    // Update the saveAppleUserData method with better name handling
+    private func saveAppleUserData(firebaseUser: User,
+                                name: String?,
+                                email: String?) {
+
+        let db  = Firestore.firestore()
+        let ref = db.collection("users").document(firebaseUser.uid)
+
+        // ── Work out what name we should store ──────────────────────────────
+        let resolvedName: String
+        if let provided = name, !provided.trimmingCharacters(in: .whitespaces).isEmpty {
+            resolvedName = provided                    // brand‑new name from Apple
+            UserDefaults.standard.set(provided,
+                                    forKey: "apple_user_name_\(firebaseUser.uid)")
+        } else if let cached = UserDefaults.standard
+                    .string(forKey: "apple_user_name_\(firebaseUser.uid)") {
+            resolvedName = cached                      // previously cached name
+        } else {
+            resolvedName = "Apple User"                // final fallback
+        }
+
+        // ── Build the payload ───────────────────────────────────────────────
+        var data: [String: Any] = [
+            "uid"      : firebaseUser.uid,
+            "provider" : "apple",
+            "name"     : resolvedName,
+            "username" : generateUsername(from: resolvedName),
+            "email"    : email ?? firebaseUser.email ?? "",
+            "score"    : 0,
+            "followers": [],
+            "following": []
+        ]
+
+        // merge keeps any other fields you’re storing
+        ref.setData(data, merge: true) { [weak self] error in
+            guard error == nil else {
+                print("Error saving Apple user: \(error!.localizedDescription)")
                 return
             }
-            
-            var userData: [String: Any] = [
-                "uid": firebaseUser.uid,
-                "provider": "apple"
-            ]
-            
-            // Add name and email if available
-            if let name = name, !name.isEmpty {
-                userData["name"] = name
-            } else if let existingName = document?.data()?["name"] as? String {
-                userData["name"] = existingName
-            } else {
-                userData["name"] = "Apple User"
-            }
-            
-            if let email = email, !email.isEmpty {
-                userData["email"] = email
-            } else if let existingEmail = document?.data()?["email"] as? String {
-                userData["email"] = existingEmail
-            } else {
-                userData["email"] = firebaseUser.email ?? ""
-            }
-            
-            // Check if the document exists and retrieve the score
-            if let document = document, document.exists, let existingScore = document.data()?["score"] as? Int {
-                userData["score"] = existingScore
-            } else {
-                userData["score"] = 0
-            }
-            
-            userDoc.setData(userData, merge: true) { [weak self] error in
-                if let error = error {
-                    self?.showAlert(title: "Error", message: "Failed to save user data: \(error.localizedDescription)")
-                    return
-                }
-                
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                self?.transitionToMainApp()
-            }
+            UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
+            UserDefaults.standard.set(true,            forKey: "isLoggedIn")
+            self?.transitionToMainApp()
         }
+    }
+
+
+    // Add this helper method to generate usernames
+    private func generateUsername(from name: String) -> String {
+        // Remove spaces and special characters, convert to lowercase
+        let sanitized = name.lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .joined()
+        
+        // If too short, append random number
+        if sanitized.count < 4 {
+            let randomNum = Int.random(in: 1000...9999)
+            return "user\(sanitized)\(randomNum)"
+        }
+        
+        // Add random 3-digit number at the end to ensure uniqueness
+        let randomNum = Int.random(in: 100...999)
+        return "\(sanitized)\(randomNum)"
     }
     
     private func transitionToMainApp() {
@@ -739,12 +859,14 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                 }
                 
                 // Get name from Apple credential if available
-                var displayName = ""
+                var displayName: String?
                 if let fullName = appleIDCredential.fullName {
-                    let firstName = fullName.givenName ?? ""
-                    let lastName = fullName.familyName ?? ""
-                    if !firstName.isEmpty || !lastName.isEmpty {
-                        displayName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
+                    let first  = fullName.givenName  ?? ""
+                    let last   = fullName.familyName ?? ""
+                    let joined = "\(first) \(last)".trimmingCharacters(in: .whitespaces)
+
+                    if !joined.isEmpty {
+                        displayName = joined
                     }
                 }
                 
@@ -758,6 +880,13 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        // Don't show alert for cancellation errors
+        if let authError = error as? ASAuthorizationError, 
+           authError.code == .canceled {
+            print("User canceled the Apple login flow")
+            return
+        }
+        
         showAlert(title: "Sign In Error", message: error.localizedDescription)
     }
 }
