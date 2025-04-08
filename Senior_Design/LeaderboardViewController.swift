@@ -4,7 +4,7 @@ import FirebaseFirestore
 class LeaderboardViewController: UIViewController {
     
     private var scores: [(name: String, score: Int)] = []
-    private var timeFrame: TimeFrame = .friends
+    private var timeFrame: TimeFrame = .global
     
     enum TimeFrame {
         case friends
@@ -13,7 +13,7 @@ class LeaderboardViewController: UIViewController {
     
     private let headerView = UIView()
     private let titleLabel = UILabel()
-    private let segmentedControl = UISegmentedControl(items: ["Friends", "Global"])
+    private let segmentedControl = UISegmentedControl(items: ["Global", "Friends"])
     private let tableView = UITableView()
     
     override func viewDidLoad() {
@@ -37,7 +37,7 @@ class LeaderboardViewController: UIViewController {
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
         
-        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.selectedSegmentIndex = 0 
         segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         segmentedControl.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
         segmentedControl.selectedSegmentTintColor = UIColor(red: 141/255, green: 212/255, blue: 109/255, alpha: 1)
@@ -93,7 +93,7 @@ class LeaderboardViewController: UIViewController {
     }
     
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
-        timeFrame = sender.selectedSegmentIndex == 0 ? .friends : .global
+        timeFrame = sender.selectedSegmentIndex == 0 ? .global : .friends
         fetchLeaderboardData()
     }
     
@@ -196,7 +196,7 @@ class LeaderboardCell: UITableViewCell {
         containerView.addSubview(avatarImageView)
         
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 18)!
-        usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0) // Added this line
+        usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(usernameLabel)
         
