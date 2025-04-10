@@ -54,6 +54,7 @@
 		D0CB124B2DA5B04600CBE83A /* ForgotPasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB124A2DA5B04600CBE83A /* ForgotPasswordViewController.swift */; };
 		D0CB124D2DA5B6DE00CBE83A /* UserSearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */; };
 		D0CB124F2DA5B78700CBE83A /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */; };
+		D0CB12512DA7882F00CBE83A /* GameHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +83,7 @@
 		D0CB124A2DA5B04600CBE83A /* ForgotPasswordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordViewController.swift; sourceTree = "<group>"; };
 		D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchViewController.swift; sourceTree = "<group>"; };
 		D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
+		D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,6 +155,7 @@
 				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
 				D06042FD2D3B26E400494D80 /* ProfileViewController.swift */,
 				D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */,
+				D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */,
 				D02D587F2D4254FC0006E688 /* QuizGameViewController.swift */,
 				D02D587D2D4254890006E688 /* CatcherGameViewController.swift */,
 				D02D58812D42562D0006E688 /* MiniGamesViewController.swift */,
@@ -280,6 +283,7 @@
 				D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */,
 				D0CB124D2DA5B6DE00CBE83A /* UserSearchViewController.swift in Sources */,
 				D06042FC2D3B269F00494D80 /* ResourcesViewController.swift in Sources */,
+				D0CB12512DA7882F00CBE83A /* GameHistoryManager.swift in Sources */,
 				D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */,
 				D06042F82D3B202000494D80 /* LeaderboardViewController.swift in Sources */,
 				D06042FE2D3B26E400494D80 /* ProfileViewController.swift in Sources */,

@@ -17,6 +17,13 @@ class ProfileViewController: UIViewController {
     private var addFriendsButton: UIButton!
     private var shareButton: UIButton!
     
+    // Recent Activity Properties
+    private var activityContainerView: UIView!
+    private var activityTitleLabel: UILabel!
+    private var noActivityLabel: UILabel!
+    private var activityStackView: UIStackView!
+    private var recentGames: [(name: String, date: Date, score: Int)] = []
+    
     private let accentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
     private let secondaryColor = UIColor(red: 87/255, green: 155/255, blue: 252/255, alpha: 1.0)
     
@@ -35,12 +42,14 @@ class ProfileViewController: UIViewController {
         setupTheme()
         setupUI()
         fetchUserData()
+        fetchRecentGames()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         fetchUserData()
         checkPendingFriendRequests()
+        fetchRecentGames() // Refresh recent games when view appears
     }
     
     // MARK: - Data Fetching
@@ -115,6 +124,133 @@ class ProfileViewController: UIViewController {
             }
     }
 
+    private func fetchRecentGames() {
+        GameHistoryManager.shared.fetchRecentGames { [weak self] games, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error fetching recent games: \(error.localizedDescription)")
+                return
+            }
+            
+            if let games = games {
+                self.recentGames = games
+                
+                DispatchQueue.main.async {
+                    self.updateRecentGamesUI()
+                }
+            }
+        }
+    }
+
+    private func updateRecentGamesUI() {
+        // Clear existing game views
+        activityStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        
+        if recentGames.isEmpty {
+            noActivityLabel.isHidden = false
+        } else {
+            noActivityLabel.isHidden = true
+            
+            // Add game views
+            for game in recentGames {
+                let gameView = createGameView(name: game.name, date: game.date, score: game.score)
+                activityStackView.addArrangedSubview(gameView)
+            }
+        }
+    }
+
+    private func createGameView(name: String, date: Date, score: Int) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .white
+        container.layer.cornerRadius = 12
+        container.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        container.layer.shadowOffset = CGSize(width: 0, height: 2)
+        container.layer.shadowRadius = 6
+        container.layer.shadowOpacity = 1
+        
+        // Game icon
+        let iconContainer = UIView()
+        iconContainer.backgroundColor = accentColor.withAlphaComponent(0.15)
+        iconContainer.layer.cornerRadius = 20
+        iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(iconContainer)
+        
+        let iconImageView = UIImageView()
+        // Choose icon based on game name
+        if name.contains("Quiz") {
+            iconImageView.image = UIImage(systemName: "questionmark")
+        } else if name.contains("Connections") {
+            iconImageView.image = UIImage(systemName: "puzzlepiece")
+        } else if name.contains("Catcher") {
+            iconImageView.image = UIImage(systemName: "arrow.down")
+        } else {
+            iconImageView.image = UIImage(systemName: "gamecontroller")
+        }
+        iconImageView.tintColor = accentColor
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconContainer.addSubview(iconImageView)
+        
+        // Game name
+        let nameLabel = UILabel()
+        nameLabel.text = name
+        nameLabel.font = UIFont(name: "Sen-Regular", size: 16)
+        nameLabel.textColor = .black
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(nameLabel)
+        
+        // Format date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM d, yyyy"
+        let dateString = dateFormatter.string(from: date)
+        
+        // Date label
+        let dateLabel = UILabel()
+        dateLabel.text = dateString
+        dateLabel.font = UIFont(name: "Sen-Regular", size: 14)
+        dateLabel.textColor = .darkGray
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(dateLabel)
+        
+        // Score label
+        let scoreLabel = UILabel()
+        scoreLabel.text = "\(score) pts"
+        scoreLabel.font = UIFont(name: "Sen-Regular", size: 16)
+        scoreLabel.textColor = accentColor
+        scoreLabel.textAlignment = .right
+        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(scoreLabel)
+        
+        NSLayoutConstraint.activate([
+            container.heightAnchor.constraint(equalToConstant: 70),
+            
+            iconContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            iconContainer.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            iconContainer.widthAnchor.constraint(equalToConstant: 40),
+            iconContainer.heightAnchor.constraint(equalToConstant: 40),
+            
+            iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 20),
+            iconImageView.heightAnchor.constraint(equalToConstant: 20),
+            
+            nameLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 12),
+            nameLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 14),
+            nameLabel.trailingAnchor.constraint(equalTo: scoreLabel.leadingAnchor, constant: -8),
+            
+            dateLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 12),
+            dateLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            dateLabel.trailingAnchor.constraint(equalTo: scoreLabel.leadingAnchor, constant: -8),
+            
+            scoreLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            scoreLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            scoreLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60)
+        ])
+        
+        return container
+    }
+
     private func updateFriendRequestBadge() {
         if hasPendingRequests {
             if friendRequestBadge == nil {
@@ -167,6 +303,19 @@ class ProfileViewController: UIViewController {
             dateFormatter.dateFormat = "MMM yyyy"
             let joinDateString = dateFormatter.string(from: date)
             joinDateLabel.text = "• Joined \(joinDateString)"
+        } else if let joinTime = userData["creationTime"] as? Double {
+            // Handle join date stored as a timestamp value
+            let date = Date(timeIntervalSince1970: joinTime)
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMM yyyy"
+            let joinDateString = dateFormatter.string(from: date)
+            joinDateLabel.text = "• Joined \(joinDateString)"
+        } else {
+            // If no timestamp is available, use current date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMM yyyy"
+            let joinDateString = dateFormatter.string(from: Date())
+            joinDateLabel.text = "• Joined \(joinDateString)"
         }
     }
     
@@ -200,16 +349,16 @@ class ProfileViewController: UIViewController {
         setupProfileHeader()
         setupStatsView()
         setupActionButtons()
+        setupRecentActivity()
         setupConstraints()
     }
     
     private func setupProfileHeader() {
         profileImageView = UIImageView()
-        profileImageView.image = UIImage(systemName: "person.crop.circle.fill")
         profileImageView.contentMode = .scaleAspectFill
         profileImageView.tintColor = .white
         profileImageView.clipsToBounds = true
-        profileImageView.backgroundColor = accentColor
+        profileImageView.backgroundColor = accentColor // Keep the green background
         profileImageView.layer.cornerRadius = 40
         profileImageView.layer.borderWidth = 3
         profileImageView.layer.borderColor = UIColor.white.cgColor
@@ -256,6 +405,57 @@ class ProfileViewController: UIViewController {
         nameLabel.text = "Loading..."
         usernameLabel.text = "@..."
         joinDateLabel.text = "• Joined ..."
+    }
+
+     private func setupRecentActivity() {
+        // Container view
+        activityContainerView = UIView()
+        activityContainerView.backgroundColor = .white
+        activityContainerView.layer.cornerRadius = 16
+        activityContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
+        activityContainerView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        activityContainerView.layer.shadowRadius = 8
+        activityContainerView.layer.shadowOpacity = 1
+        activityContainerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(activityContainerView)
+        
+        // Title label
+        activityTitleLabel = UILabel()
+        activityTitleLabel.text = "Recent Activity"
+        activityTitleLabel.font = UIFont(name: "Sen-Regular", size: 18)
+        activityTitleLabel.textColor = .black
+        activityTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        activityContainerView.addSubview(activityTitleLabel)
+        
+        // No activity label (shown when there are no games)
+        noActivityLabel = UILabel()
+        noActivityLabel.text = "No recent games played"
+        noActivityLabel.font = UIFont(name: "Sen-Regular", size: 16)
+        noActivityLabel.textColor = .darkGray
+        noActivityLabel.textAlignment = .center
+        noActivityLabel.translatesAutoresizingMaskIntoConstraints = false
+        activityContainerView.addSubview(noActivityLabel)
+        
+        // Stack view for game items
+        activityStackView = UIStackView()
+        activityStackView.axis = .vertical
+        activityStackView.spacing = 12
+        activityStackView.distribution = .fillEqually
+        activityStackView.translatesAutoresizingMaskIntoConstraints = false
+        activityContainerView.addSubview(activityStackView)
+        
+        NSLayoutConstraint.activate([
+            activityTitleLabel.topAnchor.constraint(equalTo: activityContainerView.topAnchor, constant: 16),
+            activityTitleLabel.leadingAnchor.constraint(equalTo: activityContainerView.leadingAnchor, constant: 16),
+            
+            noActivityLabel.centerXAnchor.constraint(equalTo: activityContainerView.centerXAnchor),
+            noActivityLabel.centerYAnchor.constraint(equalTo: activityContainerView.centerYAnchor),
+            
+            activityStackView.topAnchor.constraint(equalTo: activityTitleLabel.bottomAnchor, constant: 16),
+            activityStackView.leadingAnchor.constraint(equalTo: activityContainerView.leadingAnchor, constant: 16),
+            activityStackView.trailingAnchor.constraint(equalTo: activityContainerView.trailingAnchor, constant: -16),
+            activityStackView.bottomAnchor.constraint(equalTo: activityContainerView.bottomAnchor, constant: -16)
+        ])
     }
     
     private func setupStatsView() {
@@ -372,7 +572,7 @@ class ProfileViewController: UIViewController {
             profileImageView.heightAnchor.constraint(equalToConstant: 80),
             
             nameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 15),
+            nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 8),
             
             usernameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             usernameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 5),
@@ -393,7 +593,13 @@ class ProfileViewController: UIViewController {
             shareButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 10),
             shareButton.topAnchor.constraint(equalTo: statsContainerView.bottomAnchor, constant: 20),
             shareButton.heightAnchor.constraint(equalToConstant: 50),
-            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            activityContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            activityContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            activityContainerView.topAnchor.constraint(equalTo: addFriendsButton.bottomAnchor, constant: 20),
+            activityContainerView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            activityContainerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 150)
         ])
     }
     

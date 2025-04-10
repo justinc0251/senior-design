@@ -26,7 +26,7 @@ class LoginViewController: UIViewController {
     
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "app-logo") ?? UIImage(systemName: "leaf.fill")
+        imageView.image = UIImage(named: "literracy") ?? UIImage(systemName: "leaf.fill")
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = Theme.accentColor
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -315,10 +315,10 @@ class LoginViewController: UIViewController {
         NSLayoutConstraint.activate([
             logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoImageView.widthAnchor.constraint(equalToConstant: 60),
-            logoImageView.heightAnchor.constraint(equalToConstant: 60),
+            logoImageView.widthAnchor.constraint(equalToConstant: 100),
+            logoImageView.heightAnchor.constraint(equalToConstant: 100),
             
-            titleLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 40), // More spacing under logo
+            titleLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 40),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),

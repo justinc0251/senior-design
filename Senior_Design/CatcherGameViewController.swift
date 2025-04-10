@@ -126,8 +126,17 @@ class CatcherGameViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.showHelp()
+        
+        let hasSeenTutorial = UserDefaults.standard.bool(forKey: "catcher_game_tutorial_shown")
+        if !hasSeenTutorial {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.showHelp()
+                UserDefaults.standard.set(true, forKey: "catcher_game_tutorial_shown")
+            }
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.startGame()
+            }
         }
     }
     
@@ -290,7 +299,7 @@ class CatcherGameViewController: UIViewController {
         }
         
         if gameTimeRemaining <= 0 {
-            endGame(won: score >= 100)
+            endGame(won: score >= 10)
         }
     }
     
@@ -371,7 +380,7 @@ class CatcherGameViewController: UIViewController {
             height: itemSize
         )
         
-        item.tag = (category == "recycle") ? 10 : -15
+        item.tag = (category == "recycle") ? 1 : -1
         
         gameContainer.addSubview(item)
         fallingItems.append(item)
@@ -410,7 +419,7 @@ class CatcherGameViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: points > 0 ? .medium : .heavy)
         generator.impactOccurred()
         
-        if score >= 100 {
+        if score >= 10 {
             endGame(won: true)
         }
     }
@@ -446,7 +455,7 @@ class CatcherGameViewController: UIViewController {
         
         if won {
             UserDefaults.standard.set(true, forKey: "game_1_completed")
-            updateUserScore(10)
+            GameHistoryManager.shared.saveGameHistory(gameName: "Recycle Catcher", score: score)
         }
         
         let resultContainerView = UIView()
@@ -484,7 +493,7 @@ class CatcherGameViewController: UIViewController {
         
         let resultMessage = UILabel()
         resultMessage.translatesAutoresizingMaskIntoConstraints = false
-        resultMessage.text = won ? "You reached 100 points! Great recycling!" : "You scored \(score) points. Try again!"
+        resultMessage.text = won ? "You reached 10 points! Great recycling!" : "You scored \(score) points. Try again!"
         resultMessage.font = UIFont(name: "Sen-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18)
         resultMessage.textColor = Theme.secondaryText
         resultMessage.textAlignment = .center
@@ -564,7 +573,7 @@ class CatcherGameViewController: UIViewController {
         
         let alertController = UIAlertController(
             title: "How to Play",
-            message: "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +10 points\n• Other waste items: -15 points\n• Reach 100 points to win\n• You have 60 seconds",
+            message: "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Reach 10 points to win\n• You have 60 seconds",
             preferredStyle: .alert
         )
         
