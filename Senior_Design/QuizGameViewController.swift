@@ -213,6 +213,8 @@ class QuizGameViewController: UIViewController {
         containerView.addSubview(scoreLabel)
         
         view.addSubview(nextQuestionButton)
+        nextQuestionButton.isHidden = false
+        nextQuestionButton.alpha = 1
         nextQuestionButton.addTarget(self, action: #selector(nextQuestionTapped), for: .touchUpInside)
         
         setupConstraints()
@@ -569,6 +571,7 @@ class QuizGameViewController: UIViewController {
                             
                             // Set up the UI completely from scratch
                             self.setupUI()
+                            
                             
                             // Make sure the button has its target properly set
                             self.nextQuestionButton.removeTarget(nil, action: nil, for: .allEvents)
