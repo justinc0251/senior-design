@@ -447,8 +447,8 @@ class QuizGameViewController: UIViewController {
     
     private func showFinalScore() {
         UserDefaults.standard.set(true, forKey: "game_2_completed")
-        
-        updateUserScore(currentScore)
+
+        GameHistoryManager.shared.saveGameHistory(gameName: "Trivia", score: currentScore)
         
         UIView.animate(withDuration: 0.5) {
             self.containerView.alpha = 0
