@@ -25,6 +25,10 @@ class ProfileViewController: UIViewController {
     private var followingCount: Int = 0
     private var followersCount: Int = 0
     
+    private var friendRequestsButton: UIBarButtonItem!
+    private var friendRequestBadge: UIView?
+    private var hasPendingRequests: Bool = false
+    
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,6 +40,7 @@ class ProfileViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         fetchUserData()
+        checkPendingFriendRequests()
     }
     
     // MARK: - Data Fetching
@@ -49,7 +54,6 @@ class ProfileViewController: UIViewController {
         currentUserId = userId
         let db = Firestore.firestore()
             
-        // Fetch user profile data
         db.collection("users").document(userId).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data() else {
                 print("Error fetching user data: \(error?.localizedDescription ?? "Unknown error")")
@@ -58,13 +62,11 @@ class ProfileViewController: UIViewController {
             
             self.userData = data
             
-            // Update UI on main thread
             DispatchQueue.main.async {
                 self.updateUIWithUserData()
             }
         }
         
-        // Fetch following count
         db.collection("friendRequests")
             .whereField("fromUserId", isEqualTo: userId)
             .whereField("status", isEqualTo: "accepted")
@@ -79,7 +81,6 @@ class ProfileViewController: UIViewController {
                 }
             }
         
-        // Fetch followers count
         db.collection("friendRequests")
             .whereField("toUserId", isEqualTo: userId)
             .whereField("status", isEqualTo: "accepted")
@@ -95,25 +96,71 @@ class ProfileViewController: UIViewController {
             }
     }
 
-     private func updateUIWithUserData() {
+    private func checkPendingFriendRequests() {
+        guard let userId = currentUserId else { return }
+        
+        let db = Firestore.firestore()
+        db.collection("friendRequests")
+            .whereField("toUserId", isEqualTo: userId)
+            .whereField("status", isEqualTo: "pending")
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                let hasPending = (snapshot?.documents.count ?? 0) > 0
+                
+                DispatchQueue.main.async {
+                    self.hasPendingRequests = hasPending
+                    self.updateFriendRequestBadge()
+                }
+            }
+    }
+
+    private func updateFriendRequestBadge() {
+        if hasPendingRequests {
+            if friendRequestBadge == nil {
+                let badgeSize: CGFloat = 10
+                
+                let badge = UIView(frame: CGRect(x: 0, y: 0, width: badgeSize, height: badgeSize))
+                badge.backgroundColor = UIColor.red
+                badge.layer.cornerRadius = badgeSize / 2
+                
+                let buttonView = friendRequestsButton.value(forKey: "view") as? UIView
+                
+                if let buttonView = buttonView {
+                    buttonView.addSubview(badge)
+                    
+                    badge.translatesAutoresizingMaskIntoConstraints = false
+                    NSLayoutConstraint.activate([
+                        badge.topAnchor.constraint(equalTo: buttonView.topAnchor, constant: 3),
+                        badge.trailingAnchor.constraint(equalTo: buttonView.trailingAnchor, constant: -3),
+                        badge.widthAnchor.constraint(equalToConstant: badgeSize),
+                        badge.heightAnchor.constraint(equalToConstant: badgeSize)
+                    ])
+                    
+                    friendRequestBadge = badge
+                }
+            }
+        } else {
+            friendRequestBadge?.removeFromSuperview()
+            friendRequestBadge = nil
+        }
+    }
+
+    private func updateUIWithUserData() {
         guard let userData = userData else { return }
         
-        // Update name
         if let name = userData["name"] as? String {
             nameLabel.text = name
             
-            // Update avatar initial if using first letter of name
             if let initial = name.first, let avatarLabel = profileImageView.subviews.first(where: { $0 is UILabel }) as? UILabel {
                 avatarLabel.text = String(initial)
             }
         }
         
-        // Update username
         if let username = userData["username"] as? String {
             usernameLabel.text = "@\(username)"
         }
         
-        // Update join date if available
         if let joinTimestamp = userData["createdAt"] as? Timestamp {
             let date = joinTimestamp.dateValue()
             let dateFormatter = DateFormatter()
@@ -127,7 +174,6 @@ class ProfileViewController: UIViewController {
     private func setupTheme() {
         view.backgroundColor = UIColor(white: 0.98, alpha: 1.0)
         
-        // Settings button
         let settingsButton = UIBarButtonItem(
             image: UIImage(systemName: "gearshape"),
             style: .plain,
@@ -136,8 +182,7 @@ class ProfileViewController: UIViewController {
         )
         settingsButton.tintColor = accentColor
         
-        // Friend requests button - add as a mail icon in the navigation bar
-        let friendRequestsButton = UIBarButtonItem(
+        friendRequestsButton = UIBarButtonItem(
             image: UIImage(systemName: "envelope"),
             style: .plain,
             target: self,
@@ -145,7 +190,6 @@ class ProfileViewController: UIViewController {
         )
         friendRequestsButton.tintColor = accentColor
         
-        // Set both buttons to the right side of the navigation bar
         navigationItem.rightBarButtonItems = [settingsButton, friendRequestsButton]
         
         navigationItem.backButtonTitle = ""
@@ -176,7 +220,6 @@ class ProfileViewController: UIViewController {
         profileImageView.layer.shadowOpacity = 1
         view.addSubview(profileImageView)
         
-        // Add avatar label for initials
         let avatarLabel = UILabel()
         avatarLabel.font = UIFont.systemFont(ofSize: 30, weight: .bold)
         avatarLabel.textColor = .white
@@ -210,7 +253,6 @@ class ProfileViewController: UIViewController {
         joinDateLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(joinDateLabel)
         
-        // Optional: Add loading placeholders while data is fetched
         nameLabel.text = "Loading..."
         usernameLabel.text = "@..."
         joinDateLabel.text = "• Joined ..."
@@ -227,7 +269,6 @@ class ProfileViewController: UIViewController {
         statsContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statsContainerView)
         
-        // Use "0" as default values that will be updated when data loads
         followingContainer = createStatContainer(title: "0", subtitle: "Following")
         statsContainerView.addSubview(followingContainer)
         
@@ -389,7 +430,6 @@ class ProfileViewController: UIViewController {
     @objc private func handleEditProfile() {
         let alertController = UIAlertController(title: "Edit Profile", message: nil, preferredStyle: .alert)
         
-        // Get current values to show in text fields
         let currentName = nameLabel.text ?? ""
         let currentUsername = usernameLabel.text?.replacingOccurrences(of: "@", with: "") ?? ""
         
@@ -415,7 +455,6 @@ class ProfileViewController: UIViewController {
                 return
             }
             
-            // Update Firestore
             let db = Firestore.firestore()
             let userRef = db.collection("users").document(userId)
             
@@ -432,27 +471,22 @@ class ProfileViewController: UIViewController {
                     return
                 }
                 
-                // Update UI after successful Firestore update
                 DispatchQueue.main.async {
                     self.nameLabel.text = newName
                     self.usernameLabel.text = "@\(newUsername)"
                     
-                    // Update avatar initial if using first letter of name
                     if let initial = newName.first, 
                     let avatarLabel = self.profileImageView.subviews.first(where: { $0 is UILabel }) as? UILabel {
                         avatarLabel.text = String(initial)
                     }
                     
-                    // Update local userData cache
                     self.userData?["name"] = newName
                     self.userData?["username"] = newUsername
                     
-                    // Store in UserDefaults (for Apple Sign In users)
                     if let uid = Auth.auth().currentUser?.uid {
                         UserDefaults.standard.set(newName, forKey: "apple_user_name_\(uid)")
                     }
                     
-                    // Show success message
                     self.showToast(message: "Profile updated successfully!")
                 }
             }
@@ -508,12 +542,10 @@ class ProfileViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
-        // Confirm logout
         let alert = UIAlertController(title: "Log Out", message: "Are you sure you want to log out?", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Log Out", style: .destructive) { _ in
-            // Perform logout
             do {
                 try Auth.auth().signOut()
                 UserDefaults.standard.set(false, forKey: "isLoggedIn")
