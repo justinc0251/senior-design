@@ -202,17 +202,27 @@ class ConnectionsGameViewController: UIViewController {
         headerView.addSubview(titleLabel)
         headerView.addSubview(subtitleLabel)
         
+        let statusBarHeight: CGFloat = {
+            if #available(iOS 13.0, *) {
+                return view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+            } else {
+                return UIApplication.shared.statusBarFrame.height
+            }
+        }()
+        
+        let topMargin = statusBarHeight + 80
+        
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            headerView.topAnchor.constraint(equalTo: view.topAnchor, constant: topMargin),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            headerView.heightAnchor.constraint(equalToConstant: 80),
             
-            titleLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: headerView.topAnchor),
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            subtitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor)
+            subtitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            subtitleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor)
         ])
     }
     
