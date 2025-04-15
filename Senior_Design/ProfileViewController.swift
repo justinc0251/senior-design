@@ -90,19 +90,18 @@ class ProfileViewController: UIViewController {
                 }
             }
         
-        db.collection("friendRequests")
-            .whereField("toUserId", isEqualTo: userId)
-            .whereField("status", isEqualTo: "accepted")
-            .getDocuments { [weak self] snapshot, error in
-                guard let self = self else { return }
-                self.followersCount = snapshot?.documents.count ?? 0
-                
-                DispatchQueue.main.async {
-                    if let titleLabel = self.followersContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
-                        titleLabel.text = "\(self.followersCount)"
-                    }
+        db.collection("users").document(userId).getDocument { [weak self] snapshot, error in
+            guard let self = self, let data = snapshot?.data() else {
+                print("Error fetching user score: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            let score = data["score"] as? Int ?? 0
+            DispatchQueue.main.async {
+                if let titleLabel = self.followersContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                    titleLabel.text = "\(score)"
                 }
             }
+        }
     }
 
     private func checkPendingFriendRequests() {
@@ -469,7 +468,7 @@ class ProfileViewController: UIViewController {
         statsContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statsContainerView)
         
-        followingContainer = createStatContainer(title: "0", subtitle: "Following")
+        followingContainer = createStatContainer(title: "0", subtitle: "Friends")
         statsContainerView.addSubview(followingContainer)
         
         let separator = UIView()
@@ -477,7 +476,7 @@ class ProfileViewController: UIViewController {
         separator.translatesAutoresizingMaskIntoConstraints = false
         statsContainerView.addSubview(separator)
         
-        followersContainer = createStatContainer(title: "0", subtitle: "Followers")
+        followersContainer = createStatContainer(title: "0", subtitle: "Points")
         statsContainerView.addSubview(followersContainer)
         
         

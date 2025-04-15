@@ -32,13 +32,17 @@ class ResourcesViewController: UIViewController {
     }
     
     // MARK: - Sample Data
-    private let articles: [(topic: String, title: String, imageSystemName: String)] = [
-        ("Recycling", "How to Properly Sort Your Recyclables", "arrow.3.trianglepath"),
-        ("Composting", "Backyard Composting for Beginners", "leaf"),
-        ("Landfill Reduction", "10 Ways to Reduce Your Household Waste", "trash"),
-        ("E-Waste", "Responsible Electronics Disposal Guide", "desktopcomputer"),
-        ("Plastics", "Understanding Plastic Recycling Codes", "number.circle"),
-        ("Food Waste", "Strategies to Minimize Food Waste", "fork.knife")
+    private let articles: [(topic: String, title: String, imageSystemName: String, content: String)] = [
+        ("Young-Generation", "Green teens: Understanding and promoting adolescents’ sustainable engagement,", "arrow.3.trianglepath", "This paper explores how teens are more likely to act sustainably if it impacts their independence or social status. These researchers developed a tool called the Sustainability Motive-Alignment Scale (SMAS) and tested this in different countries (e.g. the US, Netherlands, China, etc.). They found a positive correlation between cultural differences and attitudes towards sustainability."),
+        ("Waste Game", "Make Waste Fun Again! A Gamification Approach to Recycling", "leaf","This paper uses focus groups to show that gamification could motivate people to recycle. It explores the idea that people prefer practical solutions and that using digital media is a good way to make learning about recycling fun. In addition, features such as rewards, achievements, and competition make the learning process more engaging."),
+        ("How To Teach", "How Education Can Be Leveraged to Foster Adolescents’ Nature Connection", "trash", "This chapter discusses how outdoor learning improves motivation, school performance, and mental health. It bridges the argument to how the connection to nature encourages a lifetime of care for the environment and sustainability."),
+        ("Practices", "Serious Practices for Interactive Waste Sorting Mini-game", "desktopcomputer", "Effective waste management is key to sustainable living, but many struggle with understanding waste classification. This study introduces a web-based serious game featuring interactive sorting quizzes created by users and AI to promote environmental sustainability. The game includes AI-generated feedback, a carbon credit system, and user-generated content to engage and educate players. Two user studies with 48 university students evaluated the game’s impact, showing it effectively enhanced understanding of sustainable waste management. The results demonstrate the potential of serious games to encourage environmental education and sustainable behaviors. By leveraging technology, such games can address environmental challenges and inspire sustainable practices."),
+        ("Eco-Quest Example Game", "ECO-QUEST: An Educational Game Designed to Impart Knowledge About Ecological Practices and Selective Waste Management", "number.circle", "This study explores how using games can improve environmental education, focusing on solid waste management. It proposes creating an educational game as a tool for teachers to help students learn in a fun and meaningful way. The game aims to teach students the importance of sorting waste and recycling, raising their environmental awareness and encouraging better habits. The game is designed using a method called the Game Design Document (GDD) and planned with the Startup Business Model Canvas to ensure clear goals and structure. The research seeks to make environmental education more engaging by using digital technology to promote sustainability effectively in schools."),
+        ("Gamification Influence", "Utilizing gamification to promote pro-sustainable behavior among information technology students", "fork.knife", "Higher education institutions are making progress in including sustainability in their programs. However, their research states that teaching methods for sustainable development need to focus more on hands-on and practical experiences to inspire real behavioral changes toward protecting the environment. This study evaluated how effective a gamified approach was in motivating IT students to adopt sustainable habits. Data was collected from 75 IT students through digital records and surveys during their English course. The results showed that gamification helped students embrace sustainable practices in their personal lives and future careers. It also significantly shifted their views, emphasizing the responsibility of individuals and employers in caring for the planet."),
+        ("Literature Review", "Determinants of adolescents’ pro-sustainable behavior: a systematic literature review using PRISMA", "fork.knife", "Climate change is a critical global issue with adolescents being among the most affected. To encourage environmentally responsible behavior among them, it is essential to identify the key factors that influence such actions. The paper states that while research shows many factors affecting adolescents’ pro-environmental behavior, these factors do not have common themes, and no study has comprehensively reviewed the scattered research on this topic. These findings can guide future researchers in expanding studies to developing countries and using mixed methods. Policymakers can also use the results to inspire adolescents to take part in climate change mitigation."),
+        ("Youth Attitudes", "Environmental Attitudes among Youth: How Much Do the Educational Characteristics of Parents and Young People Matter?", "fork.knife", "Motivation is a critical necessity for increasing and learning waste management techniques. This study provides insight on the growing phenomenon of education and its relation to environmental attitudes. This journal provides information regarding the importance of education from parents, students, and their surroundings. The journal reports the study of the importance of the environment to young students. Based on this study, they were able to determine how important education is to impacting the environment. This is important for our study, as motivation is a critical factor that will lead users to play our game. If there is a strict correlation of environmental importance to education from parents and their surroundings, then playing the game is also important for students to play."),
+        ("WasteApp Example", "How to Encourage Recycling Behaviour? The Case of WasteApp: A Gamified Mobile Application", "fork.knife", "This journal provides insight on the importance of mobile game applications for waste management at tourist attractions. Gamification is shown to be beneficial for teaching about sustainability as representative from the app (WasteApp). This journal teaches about the potential mobile game applications have in terms of teaching about behavior and more importantly why users would even play the game. The journal provides data on why people would want to play the app including the idea that risks cause more people to stray away. In total, this article provides strong evidence about the importance of using mobile game applications to teach more about waste management."),
+        ("Younger Vision on Sustainability", "Education for Sustainable Development: A Study in Adolescent Perception Changes Towards Sustainability Following a Strategic Planning-Based Intervention—The Young Persons’ Plan for the Planet Program", "fork.knife", "This journal talks about the United Nations SDGs which relate to waste management, and showed how young students could implement stem and research into sustainability. This article provides a sense of motivation for younger generations and that awareness and the need to take action is important to reduce problems like waste. This study provides data on how important it is to take action, and how this applies to waste management.")
     ]
     
     private let videos: [(topic: String, title: String, imageSystemName: String)] = [
@@ -252,7 +256,8 @@ extension ResourcesViewController: UITableViewDataSource, UITableViewDelegate {
             detailVC.configure(
                 title: article.title,
                 topic: article.topic,
-                iconName: article.imageSystemName
+                iconName: article.imageSystemName,
+                content: article.content
             )
             navigationController?.pushViewController(detailVC, animated: true)
         } else {
@@ -420,6 +425,7 @@ class ModernArticleDetailViewController: UIViewController {
     private var articleTitle: String?
     private var articleTopic: String?
     private var articleIconName: String?
+    private var articleContent: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -428,10 +434,13 @@ class ModernArticleDetailViewController: UIViewController {
         populateData()
     }
     
-    func configure(title: String, topic: String, iconName: String) {
+    func configure(title: String, topic: String, iconName: String, content: String) {
         self.articleTitle = title
         self.articleTopic = topic
         self.articleIconName = iconName
+        self.articleContent = content
+
+
     }
     
     private func setupUI() {
@@ -545,7 +554,7 @@ class ModernArticleDetailViewController: UIViewController {
             iconImageView.image = UIImage(systemName: iconName)
         }
         
-        contentLabel.text = "Proper waste management is essential for environmental sustainability. This article provides comprehensive guidance on how to effectively manage different types of waste in your daily life.\n\nWaste reduction begins at the source. Consider purchasing products with minimal packaging and choosing reusable alternatives whenever possible. By making conscious consumer choices, you can significantly reduce the amount of waste you generate.\n\nRecycling is another crucial aspect of waste management. Understanding what can and cannot be recycled in your local area is important. Generally, materials like paper, cardboard, most plastics, glass, and aluminum can be recycled. However, items contaminated with food or oil often cannot be processed.\n\nComposting organic waste such as food scraps and yard trimmings helps divert waste from landfills while creating nutrient-rich soil for gardening. Many municipalities offer composting programs, or you can start your own compost bin at home.\n\nHazardous waste, including batteries, electronics, and certain chemicals, requires special handling. Many communities have designated collection events or facilities for these items. Improper disposal can lead to environmental contamination.\n\nBy implementing these waste management strategies, you contribute to resource conservation, pollution reduction, and a healthier planet for future generations."
+        contentLabel.text = articleContent
     }
 }
 
@@ -561,6 +570,7 @@ class ModernVideoDetailViewController: UIViewController {
     private let relatedVideosLabel = UILabel()
     private let relatedVideosStackView = UIStackView()
     
+    private var articleContent: String?
     private var videoTitle: String?
     private var videoTopic: String?
     private var videoIconName: String?

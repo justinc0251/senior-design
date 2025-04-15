@@ -131,6 +131,9 @@ class UserSearchViewController: UIViewController {
                 if let error = error {
                     print("Error searching for users: \(error.localizedDescription)")
                     self.searchResults = []
+                    self.tableView.reloadData()
+                    self.updateEmptyStateVisibility()
+                    return
                 } else if let documents = snapshot?.documents {
                     let allUsers = documents.compactMap { doc -> (username: String, name: String, userId: String)? in
                         let data = doc.data()
@@ -144,22 +147,54 @@ class UserSearchViewController: UIViewController {
                         
                         return (username: username, name: name, userId: userId)
                     }
-                    
-                    if !query.isEmpty {
-                        let lowercaseQuery = query.lowercased()
-                        self.searchResults = allUsers.filter { 
-                            $0.name.lowercased().contains(lowercaseQuery) || 
-                            $0.username.lowercased().contains(lowercaseQuery)
+                    db.collection("friendRequests")
+                        .whereField("fromUserId", isEqualTo: currentUserId)
+                        .whereField("status", in: ["pending","accepted"])
+                        .getDocuments { [weak self] fromSnapshot, error in
+                            guard let self = self else{ return }
+                            var excludedUserIds = Set<String>()
+                            for doc in fromSnapshot?.documents ?? [] {
+                                let data=doc.data()
+                                if let toUserId = data["toUserId"] as? String {
+                                    excludedUserIds.insert(toUserId)
+                                }
+                            }
+                            db.collection("friendRequests")
+                                .whereField("toUserId", isEqualTo: currentUserId)
+                                .whereField("status", in: ["pending", "accepted"])
+                                .getDocuments { [weak self] toSnapshot, error in
+                                    guard let self = self else {return}
+                                    
+                                    for doc in toSnapshot?.documents ?? [] {
+                                        let data = doc.data()
+                                        if let fromUserId = data["fromUserId"] as? String{
+                                            excludedUserIds.insert(fromUserId)
+                                        }
+                                    }
+                                    if !query.isEmpty {
+                                        let lowercaseQuery = query.lowercased()
+                                        self.searchResults = allUsers.filter {
+                                            !$0.userId.isEmpty &&
+                                            !excludedUserIds.contains($0.userId) &&
+                                            (
+                                                $0.name.lowercased().contains(lowercaseQuery) ||
+                                                $0.username.lowercased().contains(lowercaseQuery)
+                                            )
+                                        }
+                                    } else {
+                                        self.searchResults = allUsers.filter{
+                                            !excludedUserIds.contains($0.userId)
+                                        }
+                                    }
+                                    self.tableView.reloadData()
+                                    self.updateEmptyStateVisibility()
+                                }
                         }
-                    } else {
-                        self.searchResults = allUsers
-                    }
                 } else {
                     self.searchResults = []
+                    self.tableView.reloadData()
+                    self.updateEmptyStateVisibility()
                 }
-                
-                self.tableView.reloadData()
-                self.updateEmptyStateVisibility()
             }
     }
     
