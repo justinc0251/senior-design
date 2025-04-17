@@ -2,7 +2,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class ProfileViewController: UIViewController {
+lass ProfileViewController: UIViewController {
     
     // MARK: - Properties
     private var profileImageView: UIImageView!
@@ -11,8 +11,8 @@ class ProfileViewController: UIViewController {
     private var joinDateLabel: UILabel!
     
     private var statsContainerView: UIView!
-    private var followingContainer: UIView!
-    private var followersContainer: UIView!
+    private var friendsContainer: UIView!
+    private var pointsContainer: UIView!
     
     private var addFriendsButton: UIButton!
     private var shareButton: UIButton!
@@ -77,19 +77,19 @@ class ProfileViewController: UIViewController {
         }
         
         db.collection("friendRequests")
-            .whereField("fromUserId", isEqualTo: userId)
-            .whereField("status", isEqualTo: "accepted")
-            .getDocuments { [weak self] snapshot, error in
-                guard let self = self else { return }
-                self.followingCount = snapshot?.documents.count ?? 0
-                
-                DispatchQueue.main.async {
-                    if let titleLabel = self.followingContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
-                        titleLabel.text = "\(self.followingCount)"
-                    }
+        .whereField("fromUserId", isEqualTo: userId)
+        .whereField("status", isEqualTo: "accepted")
+        .getDocuments { [weak self] snapshot, error in
+            guard let self = self else { return }
+            self.followingCount = snapshot?.documents.count ?? 0
+            
+            DispatchQueue.main.async {
+                if let titleLabel = self.friendsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                    titleLabel.text = "\(self.followingCount)"
                 }
             }
-        
+        }
+    
         db.collection("users").document(userId).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data() else {
                 print("Error fetching user score: \(error?.localizedDescription ?? "Unknown error")")
@@ -97,7 +97,7 @@ class ProfileViewController: UIViewController {
             }
             let score = data["score"] as? Int ?? 0
             DispatchQueue.main.async {
-                if let titleLabel = self.followersContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
+                if let titleLabel = self.pointsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel {
                     titleLabel.text = "\(score)"
                 }
             }
@@ -468,34 +468,37 @@ class ProfileViewController: UIViewController {
         statsContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statsContainerView)
         
-        followingContainer = createStatContainer(title: "0", subtitle: "Friends")
-        statsContainerView.addSubview(followingContainer)
+        friendsContainer = createStatContainer(title: "0", subtitle: "Friends")
+        statsContainerView.addSubview(friendsContainer)
+
+        let friendsTapGesture = UITapGestureRecognizer(target: self, action: #selector(friendsTapped))
+        friendsContainer.addGestureRecognizer(friendsTapGesture)
+        friendsContainer.isUserInteractionEnabled = true
         
         let separator = UIView()
         separator.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
         separator.translatesAutoresizingMaskIntoConstraints = false
         statsContainerView.addSubview(separator)
         
-        followersContainer = createStatContainer(title: "0", subtitle: "Points")
-        statsContainerView.addSubview(followersContainer)
+        pointsContainer = createStatContainer(title: "0", subtitle: "Points")
+        statsContainerView.addSubview(pointsContainer)
         
         
         NSLayoutConstraint.activate([
-            followingContainer.leadingAnchor.constraint(equalTo: statsContainerView.leadingAnchor),
-            followingContainer.topAnchor.constraint(equalTo: statsContainerView.topAnchor),
-            followingContainer.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor),
-            followingContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5),
+            friendsContainer.leadingAnchor.constraint(equalTo: statsContainerView.leadingAnchor),
+            friendsContainer.topAnchor.constraint(equalTo: statsContainerView.topAnchor),
+            friendsContainer.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor),
+            friendsContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5),
             
             separator.centerXAnchor.constraint(equalTo: statsContainerView.centerXAnchor),
             separator.topAnchor.constraint(equalTo: statsContainerView.topAnchor, constant: 15),
             separator.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor, constant: -15),
             separator.widthAnchor.constraint(equalToConstant: 1),
             
-            followersContainer.trailingAnchor.constraint(equalTo: statsContainerView.trailingAnchor),
-            followersContainer.topAnchor.constraint(equalTo: statsContainerView.topAnchor),
-            followersContainer.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor),
-            followersContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5),
-            
+            pointsContainer.trailingAnchor.constraint(equalTo: statsContainerView.trailingAnchor),
+            pointsContainer.topAnchor.constraint(equalTo: statsContainerView.topAnchor),
+            pointsContainer.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor),
+            pointsContainer.widthAnchor.constraint(equalTo: statsContainerView.widthAnchor, multiplier: 0.5),
         ])
     }
     
@@ -603,6 +606,15 @@ class ProfileViewController: UIViewController {
     }
     
     // MARK: - Actions
+    @objc private func friendsTapped() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        let friendsVC = FriendsListViewController()
+        friendsVC.accentColor = secondaryColor
+        navigationController?.pushViewController(friendsVC, animated: true)
+    }
+
     @objc private func handleSettings() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
