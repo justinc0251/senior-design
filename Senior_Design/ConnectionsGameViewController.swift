@@ -921,35 +921,13 @@ class ConnectionsGameViewController: UIViewController {
     }
 
     @objc private func showAnswersTapped(_ sender: UIButton) {
-        // First dismiss the modal so we can see the game board
         view.subviews.forEach { view in
             if view.tag == 999 {
                 UIView.animate(withDuration: 0.3, animations: {
                     view.alpha = 0
                 }) { _ in
                     view.removeFromSuperview()
-                    
-                    // Reveal the correct answers after the modal is gone
                     self.revealCorrectAnswers()
-                    
-                    // Add a small overlay hint that the restart button can be used
-                    let hintLabel = UILabel()
-                    hintLabel.translatesAutoresizingMaskIntoConstraints = false
-                    hintLabel.text = "Tap 'Restart Game' to play again"
-                    hintLabel.font = UIFont(name: "Sen-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
-                    hintLabel.textColor = Theme.secondaryText
-                    hintLabel.textAlignment = .center
-                    hintLabel.alpha = 0
-                    self.view.addSubview(hintLabel)
-                    
-                    NSLayoutConstraint.activate([
-                        hintLabel.centerXAnchor.constraint(equalTo: self.restartButton.centerXAnchor),
-                        hintLabel.bottomAnchor.constraint(equalTo: self.restartButton.topAnchor, constant: -8)
-                    ])
-                    
-                    UIView.animate(withDuration: 0.5, delay: 1.0, options: [], animations: {
-                        hintLabel.alpha = 1
-                    })
                 }
             }
         }
