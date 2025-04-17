@@ -891,13 +891,30 @@ class ConnectionsGameViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
-        UIView.animate(withDuration: 0.1, animations: {
-            self.restartButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        }) { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.restartButton.transform = .identity
+        // First dismiss any win modals that might be visible
+        view.subviews.forEach { subview in
+            // Find any modal views and dismiss them
+            if subview is UIView && 
+            subview.layer.cornerRadius == 20 && 
+            subview.backgroundColor == Theme.cardColor {
+                
+                UIView.animate(withDuration: 0.3, animations: {
+                    subview.alpha = 0
+                }) { _ in
+                    subview.removeFromSuperview()
+                    
+                    // Only reset button animation if it's the last step
+                    UIView.animate(withDuration: 0.1) {
+                        self.restartButton.transform = .identity
+                    }
+                }
             }
         }
+        
+        // Animate button press
+        UIView.animate(withDuration: 0.1, animations: {
+            self.restartButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        })
         
         gameTimer?.invalidate()
         resetGame()
