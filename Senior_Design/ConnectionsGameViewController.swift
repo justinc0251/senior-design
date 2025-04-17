@@ -16,7 +16,7 @@ class ConnectionsGameViewController: UIViewController {
     var remainingTime = 120
     var completedCategories: Set<String> = []
     var buttonCategories: [Int: String] = [:]
-    var buttonImages: [Int: String] = [:]2
+    var buttonImages: [Int: String] = [:]
     
     // MARK: - Theme Colors
     
