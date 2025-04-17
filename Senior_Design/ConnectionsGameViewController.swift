@@ -16,7 +16,7 @@ class ConnectionsGameViewController: UIViewController {
     var remainingTime = 120
     var completedCategories: Set<String> = []
     var buttonCategories: [Int: String] = [:]
-    var buttonImages: [Int: String] = [:]
+    var buttonImages: [Int: String] = [:]2
     
     // MARK: - Theme Colors
     
@@ -641,15 +641,85 @@ class ConnectionsGameViewController: UIViewController {
     
     private func showWinAlert() {
         gameTimer?.invalidate()
-        updateUserScore(10)
+
+        GameHistoryManager.shared.saveGameHistory(gameName: "Connections", score: 10)
         
-        let alert = UIAlertController(
-            title: "You Win! 🎉",
-            message: "Congratulations! You matched all the groups correctly!",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Play Again", style: .default) { _ in self.resetGame() })
-        present(alert, animated: true)
+        // Create modal container view
+        let resultContainerView = UIView()
+        resultContainerView.translatesAutoresizingMaskIntoConstraints = false
+        resultContainerView.backgroundColor = Theme.cardColor
+        resultContainerView.layer.cornerRadius = 20
+        resultContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        resultContainerView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        resultContainerView.layer.shadowRadius = 20
+        resultContainerView.layer.shadowOpacity = 1
+        resultContainerView.alpha = 0
+        view.addSubview(resultContainerView)
+        
+        NSLayoutConstraint.activate([
+            resultContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            resultContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            resultContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
+            resultContainerView.heightAnchor.constraint(equalToConstant: 300)
+        ])
+        
+        let resultIcon = UIImageView()
+        resultIcon.translatesAutoresizingMaskIntoConstraints = false
+        resultIcon.contentMode = .scaleAspectFit
+        resultIcon.tintColor = Theme.accentColor
+        resultIcon.image = UIImage(systemName: "checkmark.circle.fill")
+        resultContainerView.addSubview(resultIcon)
+        
+        let resultTitle = UILabel()
+        resultTitle.translatesAutoresizingMaskIntoConstraints = false
+        resultTitle.text = "You Win! 🎉"
+        resultTitle.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        resultTitle.textColor = Theme.primaryText
+        resultTitle.textAlignment = .center
+        resultContainerView.addSubview(resultTitle)
+        
+        let resultMessage = UILabel()
+        resultMessage.translatesAutoresizingMaskIntoConstraints = false
+        resultMessage.text = "Congratulations! You matched all the groups correctly!"
+        resultMessage.font = UIFont(name: "Sen-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18)
+        resultMessage.textColor = Theme.secondaryText
+        resultMessage.textAlignment = .center
+        resultMessage.numberOfLines = 0
+        resultContainerView.addSubview(resultMessage)
+        
+        let playAgainButton = UIButton(type: .system)
+        playAgainButton.translatesAutoresizingMaskIntoConstraints = false
+        playAgainButton.setTitle("Play Again", for: .normal)
+        playAgainButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+        playAgainButton.setTitleColor(.white, for: .normal)
+        playAgainButton.backgroundColor = Theme.accentColor
+        playAgainButton.layer.cornerRadius = 25
+        playAgainButton.addTarget(self, action: #selector(restartGame), for: .touchUpInside)
+        resultContainerView.addSubview(playAgainButton)
+        
+        NSLayoutConstraint.activate([
+            resultIcon.topAnchor.constraint(equalTo: resultContainerView.topAnchor, constant: 30),
+            resultIcon.centerXAnchor.constraint(equalTo: resultContainerView.centerXAnchor),
+            resultIcon.widthAnchor.constraint(equalToConstant: 70),
+            resultIcon.heightAnchor.constraint(equalToConstant: 70),
+            
+            resultTitle.topAnchor.constraint(equalTo: resultIcon.bottomAnchor, constant: 16),
+            resultTitle.leadingAnchor.constraint(equalTo: resultContainerView.leadingAnchor, constant: 20),
+            resultTitle.trailingAnchor.constraint(equalTo: resultContainerView.trailingAnchor, constant: -20),
+            
+            resultMessage.topAnchor.constraint(equalTo: resultTitle.bottomAnchor, constant: 12),
+            resultMessage.leadingAnchor.constraint(equalTo: resultContainerView.leadingAnchor, constant: 20),
+            resultMessage.trailingAnchor.constraint(equalTo: resultContainerView.trailingAnchor, constant: -20),
+            
+            playAgainButton.bottomAnchor.constraint(equalTo: resultContainerView.bottomAnchor, constant: -30),
+            playAgainButton.centerXAnchor.constraint(equalTo: resultContainerView.centerXAnchor),
+            playAgainButton.widthAnchor.constraint(equalToConstant: 200),
+            playAgainButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        UIView.animate(withDuration: 0.5, delay: 0.2, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
+            resultContainerView.alpha = 1
+        })
     }
     
     private func showGameOverAlert(reason: String) {
@@ -674,64 +744,85 @@ class ConnectionsGameViewController: UIViewController {
         }
         selectedButtons.removeAll()
         
-        revealCorrectAnswers()
+        // Create modal container view
+        let resultContainerView = UIView()
+        resultContainerView.translatesAutoresizingMaskIntoConstraints = false
+        resultContainerView.backgroundColor = Theme.cardColor
+        resultContainerView.layer.cornerRadius = 20
+        resultContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        resultContainerView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        resultContainerView.layer.shadowRadius = 20
+        resultContainerView.layer.shadowOpacity = 1
+        resultContainerView.alpha = 0
+        resultContainerView.tag = 999
+        view.addSubview(resultContainerView)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            let overlayView = UIView()
-            overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.75)
-            overlayView.alpha = 0
-            overlayView.translatesAutoresizingMaskIntoConstraints = false
-            overlayView.tag = 999
-            self.view.addSubview(overlayView)
+        NSLayoutConstraint.activate([
+            resultContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            resultContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            resultContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
+            resultContainerView.heightAnchor.constraint(equalToConstant: 300)
+        ])
+        
+        let resultIcon = UIImageView()
+        resultIcon.translatesAutoresizingMaskIntoConstraints = false
+        resultIcon.contentMode = .scaleAspectFit
+        resultIcon.tintColor = UIColor(red: 235/255, green: 87/255, blue: 87/255, alpha: 1.0)
+        resultIcon.image = UIImage(systemName: "hourglass")
+        resultContainerView.addSubview(resultIcon)
+        
+        let resultTitle = UILabel()
+        resultTitle.translatesAutoresizingMaskIntoConstraints = false
+        resultTitle.text = "Game Over"
+        resultTitle.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        resultTitle.textColor = Theme.primaryText
+        resultTitle.textAlignment = .center
+        resultContainerView.addSubview(resultTitle)
+        
+        let resultMessage = UILabel()
+        resultMessage.translatesAutoresizingMaskIntoConstraints = false
+        resultMessage.text = reason
+        resultMessage.font = UIFont(name: "Sen-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18)
+        resultMessage.textColor = Theme.secondaryText
+        resultMessage.textAlignment = .center
+        resultMessage.numberOfLines = 0
+        resultContainerView.addSubview(resultMessage)
+        
+        // Change button title to "Show Answers" and the action to showAnswersTapped
+        let showAnswersButton = UIButton(type: .system)
+        showAnswersButton.translatesAutoresizingMaskIntoConstraints = false
+        showAnswersButton.setTitle("Show Answers", for: .normal)
+        showAnswersButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+        showAnswersButton.setTitleColor(.white, for: .normal)
+        showAnswersButton.backgroundColor = Theme.accentColor
+        showAnswersButton.layer.cornerRadius = 25
+        showAnswersButton.tag = 1001 // Tag for identifying this button
+        showAnswersButton.addTarget(self, action: #selector(showAnswersTapped), for: .touchUpInside)
+        resultContainerView.addSubview(showAnswersButton)
+        
+        NSLayoutConstraint.activate([
+            resultIcon.topAnchor.constraint(equalTo: resultContainerView.topAnchor, constant: 30),
+            resultIcon.centerXAnchor.constraint(equalTo: resultContainerView.centerXAnchor),
+            resultIcon.widthAnchor.constraint(equalToConstant: 70),
+            resultIcon.heightAnchor.constraint(equalToConstant: 70),
             
-            let gameOverLabel = UILabel()
-            gameOverLabel.text = "Game Over"
-            gameOverLabel.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
-            gameOverLabel.textColor = .white
-            gameOverLabel.textAlignment = .center
-            gameOverLabel.translatesAutoresizingMaskIntoConstraints = false
-            overlayView.addSubview(gameOverLabel)
+            resultTitle.topAnchor.constraint(equalTo: resultIcon.bottomAnchor, constant: 16),
+            resultTitle.leadingAnchor.constraint(equalTo: resultContainerView.leadingAnchor, constant: 20),
+            resultTitle.trailingAnchor.constraint(equalTo: resultContainerView.trailingAnchor, constant: -20),
             
-            let reasonLabel = UILabel()
-            reasonLabel.text = reason
-            reasonLabel.font = UIFont(name: "Sen-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18)
-            reasonLabel.textColor = .white
-            reasonLabel.textAlignment = .center
-            reasonLabel.translatesAutoresizingMaskIntoConstraints = false
-            overlayView.addSubview(reasonLabel)
+            resultMessage.topAnchor.constraint(equalTo: resultTitle.bottomAnchor, constant: 12),
+            resultMessage.leadingAnchor.constraint(equalTo: resultContainerView.leadingAnchor, constant: 20),
+            resultMessage.trailingAnchor.constraint(equalTo: resultContainerView.trailingAnchor, constant: -20),
             
-            let tryAgainButton = UIButton(type: .system)
-            tryAgainButton.setTitle("Try Again", for: .normal)
-            tryAgainButton.setTitleColor(.white, for: .normal)
-            tryAgainButton.backgroundColor = ConnectionsGameViewController.Theme.accentColor
-            tryAgainButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
-            tryAgainButton.layer.cornerRadius = 20
-            tryAgainButton.translatesAutoresizingMaskIntoConstraints = false
-            tryAgainButton.addTarget(self, action: #selector(self.tryAgainTapped), for: .touchUpInside)
-            overlayView.addSubview(tryAgainButton)
-            
-            NSLayoutConstraint.activate([
-                overlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
-                overlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-                overlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-                overlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-                
-                gameOverLabel.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-                gameOverLabel.topAnchor.constraint(equalTo: self.headerView.bottomAnchor, constant: 30),
-                
-                reasonLabel.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-                reasonLabel.topAnchor.constraint(equalTo: gameOverLabel.bottomAnchor, constant: 10),
-                
-                tryAgainButton.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-                tryAgainButton.widthAnchor.constraint(equalToConstant: 180),
-                tryAgainButton.heightAnchor.constraint(equalToConstant: 50),
-                tryAgainButton.bottomAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: -100)
-            ])
-            
-            UIView.animate(withDuration: 0.5) {
-                overlayView.alpha = 1
-            }
-        }
+            showAnswersButton.bottomAnchor.constraint(equalTo: resultContainerView.bottomAnchor, constant: -30),
+            showAnswersButton.centerXAnchor.constraint(equalTo: resultContainerView.centerXAnchor),
+            showAnswersButton.widthAnchor.constraint(equalToConstant: 200),
+            showAnswersButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        UIView.animate(withDuration: 0.5, delay: 0.2, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
+            resultContainerView.alpha = 1
+        })
     }
     
     @objc private func tryAgainTapped() {
@@ -810,6 +901,41 @@ class ConnectionsGameViewController: UIViewController {
         
         gameTimer?.invalidate()
         resetGame()
+    }
+
+    @objc private func showAnswersTapped(_ sender: UIButton) {
+        // First dismiss the modal so we can see the game board
+        view.subviews.forEach { view in
+            if view.tag == 999 {
+                UIView.animate(withDuration: 0.3, animations: {
+                    view.alpha = 0
+                }) { _ in
+                    view.removeFromSuperview()
+                    
+                    // Reveal the correct answers after the modal is gone
+                    self.revealCorrectAnswers()
+                    
+                    // Add a small overlay hint that the restart button can be used
+                    let hintLabel = UILabel()
+                    hintLabel.translatesAutoresizingMaskIntoConstraints = false
+                    hintLabel.text = "Tap 'Restart Game' to play again"
+                    hintLabel.font = UIFont(name: "Sen-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+                    hintLabel.textColor = Theme.secondaryText
+                    hintLabel.textAlignment = .center
+                    hintLabel.alpha = 0
+                    self.view.addSubview(hintLabel)
+                    
+                    NSLayoutConstraint.activate([
+                        hintLabel.centerXAnchor.constraint(equalTo: self.restartButton.centerXAnchor),
+                        hintLabel.bottomAnchor.constraint(equalTo: self.restartButton.topAnchor, constant: -8)
+                    ])
+                    
+                    UIView.animate(withDuration: 0.5, delay: 1.0, options: [], animations: {
+                        hintLabel.alpha = 1
+                    })
+                }
+            }
+        }
     }
     
     // MARK: - Game Reset
