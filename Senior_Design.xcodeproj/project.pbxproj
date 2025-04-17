@@ -61,7 +61,6 @@
 		490D23C52DADC6510027A080 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D01F0F022D7B81F00089688C /* Sen-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sen-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		D01F0F042D7B830F0089688C /* Sen-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sen-Regular.ttf"; sourceTree = "<group>"; };
-		D01F0F062D7B831D0089688C /* Sen-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sen-Regular.ttf"; sourceTree = "<group>"; };
 		D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		D024AF602D267FFE00D37210 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		D02D587D2D4254890006E688 /* CatcherGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatcherGameViewController.swift; sourceTree = "<group>"; };
@@ -126,7 +125,6 @@
 		D071BED22CC5D27000D7D9B1 = {
 			isa = PBXGroup;
 			children = (
-				D01F0F062D7B831D0089688C /* Sen-Regular.ttf */,
 				D071BEDD2CC5D27000D7D9B1 /* Senior_Design */,
 				D071BEDC2CC5D27000D7D9B1 /* Products */,
 			);
@@ -143,32 +141,96 @@
 		D071BEDD2CC5D27000D7D9B1 /* Senior_Design */ = {
 			isa = PBXGroup;
 			children = (
-				D0C8A2AC2D9913AD00590C51 /* Senior_Design.entitlements */,
-				D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */,
-				D0C8A2AD2D9B351B00590C51 /* WasteData.swift */,
-				D06042F72D3B202000494D80 /* LeaderboardViewController.swift */,
-				D01F0F022D7B81F00089688C /* Sen-VariableFont_wght.ttf */,
-				D01F0F042D7B830F0089688C /* Sen-Regular.ttf */,
-				D024AF602D267FFE00D37210 /* LoginViewController.swift */,
-				D071BEDE2CC5D27000D7D9B1 /* AppDelegate.swift */,
-				490D23C52DADC6510027A080 /* GoogleService-Info.plist */,
-				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
-				D06042FD2D3B26E400494D80 /* ProfileViewController.swift */,
-				D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */,
-				D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */,
-				D02D587F2D4254FC0006E688 /* QuizGameViewController.swift */,
-				D02D587D2D4254890006E688 /* CatcherGameViewController.swift */,
-				D02D58812D42562D0006E688 /* MiniGamesViewController.swift */,
-				D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */,
-				D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */,
-				D0CB12482DA5AF0900CBE83A /* SignUpViewController.swift */,
-				D0CB124A2DA5B04600CBE83A /* ForgotPasswordViewController.swift */,
-				D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */,
-				D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */,
-				D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */,
 				D071BEEC2CC5D27100D7D9B1 /* Info.plist */,
+				D0C8A2AC2D9913AD00590C51 /* Senior_Design.entitlements */,
+				D0CB12582DB1929900CBE83A /* Models */,
+				D0CB12562DB1927100CBE83A /* Main Tabs */,
+				D0CB125A2DB192C700CBE83A /* Resources */,
+				D0CB125B2DB192DB00CBE83A /* App */,
+				D0CB12542DB191E700CBE83A /* Authentication */,
+				D0CB12552DB1925C00CBE83A /* Games */,
+				D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */,
+				D0CB12572DB1928D00CBE83A /* User */,
+				D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */,
 			);
 			path = Senior_Design;
+			sourceTree = "<group>";
+		};
+		D0CB12542DB191E700CBE83A /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				D0CB124A2DA5B04600CBE83A /* ForgotPasswordViewController.swift */,
+				D024AF5E2D267F9B00D37210 /* OnboardingViewController.swift */,
+				D024AF602D267FFE00D37210 /* LoginViewController.swift */,
+				D0CB12482DA5AF0900CBE83A /* SignUpViewController.swift */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		D0CB12552DB1925C00CBE83A /* Games */ = {
+			isa = PBXGroup;
+			children = (
+				D02D587F2D4254FC0006E688 /* QuizGameViewController.swift */,
+				D02D587D2D4254890006E688 /* CatcherGameViewController.swift */,
+				D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */,
+			);
+			path = Games;
+			sourceTree = "<group>";
+		};
+		D0CB12562DB1927100CBE83A /* Main Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				D06042F72D3B202000494D80 /* LeaderboardViewController.swift */,
+				D06042FB2D3B269F00494D80 /* ResourcesViewController.swift */,
+				D06042FD2D3B26E400494D80 /* ProfileViewController.swift */,
+				D02D58812D42562D0006E688 /* MiniGamesViewController.swift */,
+			);
+			path = "Main Tabs";
+			sourceTree = "<group>";
+		};
+		D0CB12572DB1928D00CBE83A /* User */ = {
+			isa = PBXGroup;
+			children = (
+				D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */,
+				D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */,
+			);
+			path = User;
+			sourceTree = "<group>";
+		};
+		D0CB12582DB1929900CBE83A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D0C8A2AD2D9B351B00590C51 /* WasteData.swift */,
+				D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D0CB12592DB192BD00CBE83A /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				D01F0F022D7B81F00089688C /* Sen-VariableFont_wght.ttf */,
+				D01F0F042D7B830F0089688C /* Sen-Regular.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		D0CB125A2DB192C700CBE83A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D0CB12592DB192BD00CBE83A /* Fonts */,
+				490D23C52DADC6510027A080 /* GoogleService-Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		D0CB125B2DB192DB00CBE83A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				D071BEDE2CC5D27000D7D9B1 /* AppDelegate.swift */,
+				D071BEE02CC5D27000D7D9B1 /* SceneDelegate.swift */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

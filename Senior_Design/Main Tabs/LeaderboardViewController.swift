@@ -119,12 +119,7 @@ class LeaderboardViewController: UIViewController {
     }
     
     private func fetchLeaderboardData() {
-        // Show loading indicator
-        let spinner = UIActivityIndicatorView(style: .medium)
-        spinner.startAnimating()
-        spinner.center = view.center
-        view.addSubview(spinner)
-        
+        // Remove spinner creation code
         let db = Firestore.firestore()
         
         if timeFrame == .global {
@@ -134,7 +129,6 @@ class LeaderboardViewController: UIViewController {
                 .limit(to: 10)
                 .getDocuments { [weak self] snapshot, error in
                     guard let self = self else { return }
-                    spinner.removeFromSuperview()
                     
                     if let error = error {
                         print("Error fetching leaderboard data: \(error.localizedDescription)")
@@ -164,13 +158,12 @@ class LeaderboardViewController: UIViewController {
         } else {
             // Friends leaderboard
             guard let currentUser = Auth.auth().currentUser else {
-                spinner.removeFromSuperview()
                 self.emptyStateLabel.isHidden = false
                 self.tableView.isHidden = true
                 return
             }
             
-            // Get user's friend list - UPDATED to use friendRequests collection
+            // Get user's friend list
             db.collection("friendRequests")
                 .whereField("fromUserId", isEqualTo: currentUser.uid)
                 .whereField("status", isEqualTo: "accepted")
@@ -179,7 +172,6 @@ class LeaderboardViewController: UIViewController {
                     
                     if let error = error {
                         print("Error fetching friends: \(error.localizedDescription)")
-                        spinner.removeFromSuperview()
                         self.showErrorAlert()
                         return
                     }
@@ -187,7 +179,6 @@ class LeaderboardViewController: UIViewController {
                     // No friend requests found
                     guard let documents = snapshot?.documents, !documents.isEmpty else {
                         print("No friends found.")
-                        spinner.removeFromSuperview()
                         self.scores = []
                         self.emptyStateLabel.isHidden = false
                         self.tableView.isHidden = true
@@ -210,15 +201,14 @@ class LeaderboardViewController: UIViewController {
                             }
                             
                             if let data = snapshot?.data(),
-                               let name = data["name"] as? String,
-                               let score = data["score"] as? Int {
+                            let name = data["name"] as? String,
+                            let score = data["score"] as? Int {
                                 friendScores.append((name: name, score: score))
                             }
                         }
                     }
                     
                     group.notify(queue: .main) {
-                        spinner.removeFromSuperview()
                         self.scores = friendScores.sorted(by: { $0.score > $1.score })
                         self.emptyStateLabel.isHidden = !self.scores.isEmpty
                         self.tableView.isHidden = self.scores.isEmpty
