@@ -23,7 +23,7 @@ class CatcherGameViewController: UIViewController {
     
     private let binWidth: CGFloat = 60
     private let binHeight: CGFloat = 75
-    private let itemSize: CGFloat = 60
+    private let itemSize: CGFloat = 75
     private let fallSpeed: CGFloat = 3.0
     
     private var hasPositionedBin = false
@@ -571,18 +571,100 @@ class CatcherGameViewController: UIViewController {
         itemTimer?.invalidate()
         gameTimeTimer?.invalidate()
         
-        let alertController = UIAlertController(
-            title: "How to Play",
-            message: "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Reach 10 points to win\n• You have 60 seconds",
-            preferredStyle: .alert
-        )
+        // Create modal container view
+        let helpContainerView = UIView()
+        helpContainerView.translatesAutoresizingMaskIntoConstraints = false
+        helpContainerView.backgroundColor = Theme.cardColor
+        helpContainerView.layer.cornerRadius = 20
+        helpContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        helpContainerView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        helpContainerView.layer.shadowRadius = 20
+        helpContainerView.layer.shadowOpacity = 1
+        helpContainerView.alpha = 0
+        helpContainerView.tag = 999 // For easy identification
+        view.addSubview(helpContainerView)
         
-        let startAction = UIAlertAction(title: "Start Game", style: .default) { _ in
-            self.startGame()
+        NSLayoutConstraint.activate([
+            helpContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            helpContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            helpContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
+            helpContainerView.heightAnchor.constraint(equalToConstant: 420) // Increased from 340 to 420
+        ])
+        
+        // Help icon
+        let helpIcon = UIImageView()
+        helpIcon.translatesAutoresizingMaskIntoConstraints = false
+        helpIcon.contentMode = .scaleAspectFit
+        helpIcon.tintColor = Theme.accentColor
+        helpIcon.image = UIImage(systemName: "questionmark.circle.fill")
+        helpContainerView.addSubview(helpIcon)
+        
+        // Title
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = "How to Play"
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        titleLabel.textColor = Theme.primaryText
+        titleLabel.textAlignment = .center
+        helpContainerView.addSubview(titleLabel)
+        
+        // Instructions
+        let instructionsLabel = UILabel()
+        instructionsLabel.translatesAutoresizingMaskIntoConstraints = false
+        instructionsLabel.text = "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Reach 10 points to win\n• You have 60 seconds"
+        instructionsLabel.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
+        instructionsLabel.textColor = Theme.secondaryText
+        instructionsLabel.textAlignment = .left
+        instructionsLabel.numberOfLines = 0
+        helpContainerView.addSubview(instructionsLabel)
+        
+        // Start button
+        let startButton = UIButton(type: .system)
+        startButton.translatesAutoresizingMaskIntoConstraints = false
+        startButton.setTitle("Start Game", for: .normal)
+        startButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+        startButton.setTitleColor(.white, for: .normal)
+        startButton.backgroundColor = Theme.accentColor
+        startButton.layer.cornerRadius = 25
+        startButton.addTarget(self, action: #selector(dismissHelpAndStartGame), for: .touchUpInside)
+        helpContainerView.addSubview(startButton)
+        
+        NSLayoutConstraint.activate([
+            helpIcon.topAnchor.constraint(equalTo: helpContainerView.topAnchor, constant: 30),
+            helpIcon.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
+            helpIcon.widthAnchor.constraint(equalToConstant: 60),
+            helpIcon.heightAnchor.constraint(equalToConstant: 60),
+            
+            titleLabel.topAnchor.constraint(equalTo: helpIcon.bottomAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: helpContainerView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: helpContainerView.trailingAnchor, constant: -20),
+            
+            instructionsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            instructionsLabel.leadingAnchor.constraint(equalTo: helpContainerView.leadingAnchor, constant: 24),
+            instructionsLabel.trailingAnchor.constraint(equalTo: helpContainerView.trailingAnchor, constant: -24),
+            
+            startButton.bottomAnchor.constraint(equalTo: helpContainerView.bottomAnchor, constant: -30),
+            startButton.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
+            startButton.widthAnchor.constraint(equalToConstant: 200),
+            startButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        // Animate the modal appearing
+        UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
+            helpContainerView.alpha = 1
+        })
+    }
+
+    @objc private func dismissHelpAndStartGame() {
+        // Find and remove the help modal view
+        for subview in view.subviews where subview.tag == 999 {
+            UIView.animate(withDuration: 0.3, animations: {
+                subview.alpha = 0
+            }) { _ in
+                subview.removeFromSuperview()
+                self.startGame()
+            }
         }
-        
-        alertController.addAction(startAction)
-        present(alertController, animated: true)
     }
     
     // MARK: - Firebase
