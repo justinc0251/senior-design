@@ -42,6 +42,38 @@ class CatcherGameViewController: UIViewController {
     
     // MARK: - UI Elements
     
+    private let headerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 16
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 3)
+        view.layer.shadowRadius = 8
+        view.layer.shadowOpacity = 1
+        return view
+    }()
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Recycle Catcher"
+        label.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.textColor = Theme.primaryText
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Catch all the recyclables"
+        label.font = UIFont(name: "Sen-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        label.textColor = Theme.secondaryText
+        label.textAlignment = .center
+        return label
+    }()
+    
     private let scoreContainer: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -110,7 +142,7 @@ class CatcherGameViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = Theme.backgroundColor
         setupGameContainer()
-        navigationItem.title = "Recycling Catcher"
+        navigationItem.title = ""
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.tintColor = Theme.accentColor
         let helpButton = UIBarButtonItem(
@@ -122,6 +154,8 @@ class CatcherGameViewController: UIViewController {
         navigationItem.rightBarButtonItem = helpButton
         setupUI()
         setupBin()
+        headerView.backgroundColor = .clear
+        headerView.layer.shadowOpacity = 0
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -169,7 +203,7 @@ class CatcherGameViewController: UIViewController {
         progressContainer.addSubview(progressBar)
         
         NSLayoutConstraint.activate([
-            scoreContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            scoreContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             scoreContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scoreContainer.widthAnchor.constraint(equalToConstant: 120),
             scoreContainer.heightAnchor.constraint(equalToConstant: 50),
@@ -177,7 +211,7 @@ class CatcherGameViewController: UIViewController {
             scoreLabel.centerXAnchor.constraint(equalTo: scoreContainer.centerXAnchor),
             scoreLabel.centerYAnchor.constraint(equalTo: scoreContainer.centerYAnchor),
             
-            timeContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            timeContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             timeContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             timeContainer.widthAnchor.constraint(equalToConstant: 120),
             timeContainer.heightAnchor.constraint(equalToConstant: 50),
@@ -198,6 +232,36 @@ class CatcherGameViewController: UIViewController {
             progressBar.topAnchor.constraint(equalTo: progressContainer.topAnchor),
             progressBar.leadingAnchor.constraint(equalTo: progressContainer.leadingAnchor),
             progressBar.bottomAnchor.constraint(equalTo: progressContainer.bottomAnchor),
+        ])
+        setupHeader()
+    }
+    
+    private func setupHeader() {
+        view.addSubview(headerView)
+        headerView.addSubview(titleLabel)
+        headerView.addSubview(subtitleLabel)
+        
+        let statusBarHeight: CGFloat = {
+            if #available(iOS 13.0, *) {
+                return view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+            } else {
+                return UIApplication.shared.statusBarFrame.height
+            }
+        }()
+        
+        let topMargin = statusBarHeight + 100
+        
+        NSLayoutConstraint.activate([
+            headerView.topAnchor.constraint(equalTo: view.topAnchor, constant: topMargin),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            titleLabel.topAnchor.constraint(equalTo: headerView.topAnchor),
+            titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            subtitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            subtitleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor)
         ])
     }
     
@@ -544,7 +608,7 @@ class CatcherGameViewController: UIViewController {
         for subview in view.subviews {
             if subview != scoreContainer && subview != timeContainer && 
                subview != progressContainer && subview != bin &&
-               subview != gameContainer {
+               subview != gameContainer && subview != headerView{
                 UIView.animate(withDuration: 0.3, animations: {
                     subview.alpha = 0
                 }) { _ in

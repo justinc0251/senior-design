@@ -36,6 +36,38 @@ class QuizGameViewController: UIViewController {
     
     // MARK: - UI Elements
     
+    private let headerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 16
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 3)
+        view.layer.shadowRadius = 8
+        view.layer.shadowOpacity = 1
+        return view
+    }()
+    
+    private let gameTitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Trivia"
+        label.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.textColor = Theme.primaryText
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let gameSubtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Get your score out of 10 questions"
+        label.font = UIFont(name: "Sen-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        label.textColor = Theme.secondaryText
+        label.textAlignment = .center
+        return label
+    }()
+    
     private let containerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -176,9 +208,11 @@ class QuizGameViewController: UIViewController {
         initializeImageQueue()
         loadQuestion()
         
-        navigationItem.title = "Trivia"
+        navigationItem.title = ""
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.tintColor = Theme.accentColor
+        headerView.backgroundColor = .clear
+        headerView.layer.shadowOpacity = 0
     }
     
     // MARK: - UI Setup
@@ -217,12 +251,42 @@ class QuizGameViewController: UIViewController {
         nextQuestionButton.alpha = 1
         nextQuestionButton.addTarget(self, action: #selector(nextQuestionTapped), for: .touchUpInside)
         
+        setupHeader()
         setupConstraints()
+    }
+    
+    private func setupHeader() {
+        view.addSubview(headerView)
+        headerView.addSubview(gameTitleLabel)
+        headerView.addSubview(gameSubtitleLabel)
+        
+        let statusBarHeight: CGFloat = {
+            if #available(iOS 13.0, *) {
+                return view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+            } else {
+                return UIApplication.shared.statusBarFrame.height
+            }
+        }()
+        
+        let topMargin = statusBarHeight + 100
+        
+        NSLayoutConstraint.activate([
+            headerView.topAnchor.constraint(equalTo: view.topAnchor, constant: topMargin),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            gameTitleLabel.topAnchor.constraint(equalTo: headerView.topAnchor),
+            gameTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            
+            gameSubtitleLabel.topAnchor.constraint(equalTo: gameTitleLabel.bottomAnchor, constant: 4),
+            gameSubtitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            gameSubtitleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor)
+        ])
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            containerView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             containerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
@@ -314,6 +378,13 @@ class QuizGameViewController: UIViewController {
         
         for stackView in [row1StackView, row2StackView] {
             for case let button as UIButton in stackView.arrangedSubviews {
+                // Remove any existing X marks
+                button.subviews.forEach { subview in
+                    if subview.tag == 888 {
+                        subview.removeFromSuperview()
+                    }
+                }
+                
                 let title = button.title(for: .normal) ?? ""
                 let color = Theme.optionColors[title] ?? .gray
                 
@@ -346,10 +417,7 @@ class QuizGameViewController: UIViewController {
                             button.backgroundColor = Theme.correctColor
                             button.setTitleColor(.white, for: .normal)
                             button.layer.borderColor = Theme.correctColor.cgColor
-                            
-                            if title == correctOption {
-                                button.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
-                            }
+                            button.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
                         }
                     } else {
                         UIView.animate(withDuration: 0.3) {
@@ -363,15 +431,24 @@ class QuizGameViewController: UIViewController {
             }
         }
         
+        if selectedTitle != correctOption {
+            addXMark(to: sender)
+        }
+        
         if selectedTitle == correctOption {
             currentScore += 1
             scoreLabel.text = "Score: \(currentScore)"
+        
+            UIView.animate(withDuration: 0.3, animations: {
+                self.scoreLabel.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+            }) { _ in
+                UIView.animate(withDuration: 0.2) {
+                    self.scoreLabel.transform = .identity
+                }
+            }
             
             let successFeedback = UINotificationFeedbackGenerator()
             successFeedback.notificationOccurred(.success)
-        } else {
-            let errorFeedback = UINotificationFeedbackGenerator()
-            errorFeedback.notificationOccurred(.error)
         }
         
         updateDescription(for: correctOption)
@@ -383,6 +460,35 @@ class QuizGameViewController: UIViewController {
             UIView.animate(withDuration: 0.2) {
                 self.nextQuestionButton.transform = .identity
             }
+        }
+    }
+
+    private func addXMark(to button: UIButton) {
+        button.subviews.forEach { subview in
+            if subview.tag == 888 {
+                subview.removeFromSuperview()
+            }
+        }
+        
+        let xMarkView = UIImageView(image: UIImage(systemName: "xmark"))
+        xMarkView.tintColor = Theme.incorrectColor
+        xMarkView.contentMode = .scaleAspectFit
+        xMarkView.translatesAutoresizingMaskIntoConstraints = false
+        xMarkView.alpha = 0
+        xMarkView.tag = 888
+        xMarkView.tintColor = Theme.incorrectColor.withAlphaComponent(0.7)
+        
+        button.addSubview(xMarkView)
+        
+        NSLayoutConstraint.activate([
+            xMarkView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+            xMarkView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            xMarkView.widthAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.5),
+            xMarkView.heightAnchor.constraint(equalTo: button.heightAnchor, multiplier: 0.5)
+        ])
+        
+        UIView.animate(withDuration: 0.2) {
+            xMarkView.alpha = 1
         }
     }
     
@@ -556,9 +662,9 @@ class QuizGameViewController: UIViewController {
                         }, completion: { _ in
                             resultsContainer.removeFromSuperview()
                             
-                            for subview in self.view.subviews {
-                                subview.removeFromSuperview()
-                            }
+                            self.containerView.removeFromSuperview()
+                            self.scoreLabel.removeFromSuperview()
+                            self.nextQuestionButton.removeFromSuperview()
                             
                             self.currentIndex = 0
                             self.currentScore = 0
@@ -566,21 +672,12 @@ class QuizGameViewController: UIViewController {
                             self.initializeImageQueue()
                             self.currentImage = self.imageQueue[self.currentIndex]
                             
-                            // Recreate the next question button from scratch
-                            self.nextQuestionButton.removeTarget(nil, action: nil, for: .allEvents)
-                            
-                            // Set up the UI completely from scratch
                             self.setupUI()
-                            
-                            
-                            // Make sure the button has its target properly set
-                            self.nextQuestionButton.removeTarget(nil, action: nil, for: .allEvents)
-                            self.nextQuestionButton.addTarget(self, action: #selector(self.nextQuestionTapped), for: .touchUpInside)
-                            
                             self.loadQuestion()
                             
-                            self.scoreLabel.text = "Score: 0"
-                            self.scoreLabel.alpha = 1
+                            self.navigationItem.title = ""
+                            self.navigationController?.navigationBar.prefersLargeTitles = true
+                            self.navigationController?.navigationBar.tintColor = Theme.accentColor
                             
                             self.containerView.alpha = 0
                             UIView.animate(withDuration: 0.3) {

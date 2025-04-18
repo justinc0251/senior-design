@@ -210,7 +210,7 @@ class ConnectionsGameViewController: UIViewController {
             }
         }()
         
-        let topMargin = statusBarHeight + 80
+        let topMargin = statusBarHeight + 100
         
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: view.topAnchor, constant: topMargin),
@@ -878,7 +878,7 @@ class ConnectionsGameViewController: UIViewController {
         
         let alert = UIAlertController(
             title: "How to Play",
-            message: "Find groups of 4 items that belong to the same waste category.\n\n• Long press on a tile to see what it is\n• Select 4 tiles of the same category to form a group\n• You have 4 attempts to find all groups",
+            message: "Find groups of 4 items that belong to the same waste category.\n\n• Long press on a tile to see what it is\n• Select 4 tiles of the same category to form a group\n• You have 4 attempts to find all groups\n\nCategories:\n• Landfill = Brown\n• Recycling = Blue\n• Compost = Green\n• Hazardous = Yellow",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "Got it", style: .default) { _ in
