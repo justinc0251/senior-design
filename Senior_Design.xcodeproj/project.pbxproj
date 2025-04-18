@@ -55,6 +55,7 @@
 		D0CB124D2DA5B6DE00CBE83A /* UserSearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */; };
 		D0CB124F2DA5B78700CBE83A /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */; };
 		D0CB12512DA7882F00CBE83A /* GameHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */; };
+		D0CB125D2DB1BC4900CBE83A /* FriendsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CB125C2DB1BC4900CBE83A /* FriendsListViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +84,7 @@
 		D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchViewController.swift; sourceTree = "<group>"; };
 		D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
 		D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryManager.swift; sourceTree = "<group>"; };
+		D0CB125C2DB1BC4900CBE83A /* FriendsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsListViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -193,6 +195,7 @@
 			children = (
 				D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */,
 				D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */,
+				D0CB125C2DB1BC4900CBE83A /* FriendsListViewController.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -342,6 +345,7 @@
 				D02D58802D4254FC0006E688 /* QuizGameViewController.swift in Sources */,
 				D071BEE32CC5D27000D7D9B1 /* ConnectionsGameViewController.swift in Sources */,
 				D071BEDF2CC5D27000D7D9B1 /* AppDelegate.swift in Sources */,
+				D0CB125D2DB1BC4900CBE83A /* FriendsListViewController.swift in Sources */,
 				D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */,
 				D0CB124D2DA5B6DE00CBE83A /* UserSearchViewController.swift in Sources */,
 				D06042FC2D3B269F00494D80 /* ResourcesViewController.swift in Sources */,
