@@ -2,7 +2,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-lass ProfileViewController: UIViewController {
+class ProfileViewController: UIViewController {
     
     // MARK: - Properties
     private var profileImageView: UIImageView!
