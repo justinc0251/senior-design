@@ -876,48 +876,101 @@ class ConnectionsGameViewController: UIViewController {
     @objc private func helpButtonTapped() {
         gameTimer?.invalidate()
         
-        let alert = UIAlertController(
-            title: "How to Play",
-            message: "Find groups of 4 items that belong to the same waste category.\n\n• Long press on a tile to see what it is\n• Select 4 tiles of the same category to form a group\n• You have 4 attempts to find all groups\n\nCategories:\n• Landfill = Brown\n• Recycling = Blue\n• Compost = Green\n• Hazardous = Yellow",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Got it", style: .default) { _ in
-            self.startTimer()
+        // Create modal container view
+        let helpContainerView = UIView()
+        helpContainerView.translatesAutoresizingMaskIntoConstraints = false
+        helpContainerView.backgroundColor = Theme.cardColor
+        helpContainerView.layer.cornerRadius = 20
+        helpContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        helpContainerView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        helpContainerView.layer.shadowRadius = 20
+        helpContainerView.layer.shadowOpacity = 1
+        helpContainerView.alpha = 0
+        helpContainerView.tag = 999 // For easy identification
+        view.addSubview(helpContainerView)
+        
+        NSLayoutConstraint.activate([
+            helpContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            helpContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            helpContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
+            helpContainerView.heightAnchor.constraint(equalToConstant: 520) // Increased from 420 to 500
+        ])
+        
+        // Help icon
+        let helpIcon = UIImageView()
+        helpIcon.translatesAutoresizingMaskIntoConstraints = false
+        helpIcon.contentMode = .scaleAspectFit
+        helpIcon.tintColor = Theme.accentColor
+        helpIcon.image = UIImage(systemName: "questionmark.circle.fill")
+        helpContainerView.addSubview(helpIcon)
+        
+        // Title
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = "How to Play"
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 28) ?? UIFont.systemFont(ofSize: 28, weight: .bold)
+        titleLabel.textColor = Theme.primaryText
+        titleLabel.textAlignment = .center
+        helpContainerView.addSubview(titleLabel)
+        
+        // Instructions
+        let instructionsLabel = UILabel()
+        instructionsLabel.translatesAutoresizingMaskIntoConstraints = false
+        instructionsLabel.text = "Find groups of 4 items that belong to the same waste category.\n\n• Long press on a tile to see what it is\n• Select 4 tiles of the same category to form a group\n• You have 4 attempts to find all groups\n\nCategories:\n• Landfill = Brown\n• Recycling = Blue\n• Compost = Green\n• Hazardous = Yellow"
+        instructionsLabel.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
+        instructionsLabel.textColor = Theme.secondaryText
+        instructionsLabel.textAlignment = .left
+        instructionsLabel.numberOfLines = 0
+        helpContainerView.addSubview(instructionsLabel)
+        
+        // Got it button
+        let gotItButton = UIButton(type: .system)
+        gotItButton.translatesAutoresizingMaskIntoConstraints = false
+        gotItButton.setTitle("Got it", for: .normal)
+        gotItButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+        gotItButton.setTitleColor(.white, for: .normal)
+        gotItButton.backgroundColor = Theme.accentColor
+        gotItButton.layer.cornerRadius = 25
+        gotItButton.addTarget(self, action: #selector(dismissHelpModal), for: .touchUpInside)
+        helpContainerView.addSubview(gotItButton)
+        
+        NSLayoutConstraint.activate([
+            helpIcon.topAnchor.constraint(equalTo: helpContainerView.topAnchor, constant: 30),
+            helpIcon.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
+            helpIcon.widthAnchor.constraint(equalToConstant: 60),
+            helpIcon.heightAnchor.constraint(equalToConstant: 60),
+            
+            titleLabel.topAnchor.constraint(equalTo: helpIcon.bottomAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: helpContainerView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: helpContainerView.trailingAnchor, constant: -20),
+            
+            instructionsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            instructionsLabel.leadingAnchor.constraint(equalTo: helpContainerView.leadingAnchor, constant: 24),
+            instructionsLabel.trailingAnchor.constraint(equalTo: helpContainerView.trailingAnchor, constant: -24),
+            
+            gotItButton.bottomAnchor.constraint(equalTo: helpContainerView.bottomAnchor, constant: -30),
+            gotItButton.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
+            gotItButton.widthAnchor.constraint(equalToConstant: 200),
+            gotItButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        // Animate the modal appearing
+        UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
+            helpContainerView.alpha = 1
         })
-        present(alert, animated: true)
     }
     
-    @objc private func restartGame() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-        
-        // First dismiss any win modals that might be visible
-        view.subviews.forEach { subview in
-            // Find any modal views and dismiss them
-            if subview is UIView && 
-            subview.layer.cornerRadius == 20 && 
-            subview.backgroundColor == Theme.cardColor {
-                
-                UIView.animate(withDuration: 0.3, animations: {
-                    subview.alpha = 0
-                }) { _ in
-                    subview.removeFromSuperview()
-                    
-                    // Only reset button animation if it's the last step
-                    UIView.animate(withDuration: 0.1) {
-                        self.restartButton.transform = .identity
-                    }
-                }
+    @objc private func dismissHelpModal() {
+        // Find and remove the help modal view
+        for subview in view.subviews where subview.tag == 999 {
+            UIView.animate(withDuration: 0.3, animations: {
+                subview.alpha = 0
+            }) { _ in
+                subview.removeFromSuperview()
+                // Restart the timer when the modal is dismissed
+                self.startTimer()
             }
         }
-        
-        // Animate button press
-        UIView.animate(withDuration: 0.1, animations: {
-            self.restartButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        })
-        
-        gameTimer?.invalidate()
-        resetGame()
     }
 
     @objc private func showAnswersTapped(_ sender: UIButton) {
@@ -933,9 +986,7 @@ class ConnectionsGameViewController: UIViewController {
         }
     }
     
-    // MARK: - Game Reset
-    
-    private func resetGame() {
+    @objc private func restartGame() {
         completedCategories.removeAll()
         selectedButtons.removeAll()
         buttonCategories.removeAll()
