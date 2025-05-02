@@ -246,8 +246,6 @@ class MiniGamesViewController: UIViewController {
         playButton.semanticContentAttribute = .forceRightToLeft
         playButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(cardTapped(_:)))
-        cardView.addGestureRecognizer(tapGesture)
         cardView.tag = index
         cardView.isUserInteractionEnabled = true
         
@@ -288,10 +286,6 @@ class MiniGamesViewController: UIViewController {
             playButton.widthAnchor.constraint(equalToConstant: Constants.buttonWidth),
             playButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight)
         ])
-        
-        let pressDown = UILongPressGestureRecognizer(target: self, action: #selector(handlePress(_:)))
-        pressDown.minimumPressDuration = 0.1
-        cardView.addGestureRecognizer(pressDown)
         
         return cardView
     }

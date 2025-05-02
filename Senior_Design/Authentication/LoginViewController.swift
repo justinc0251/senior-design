@@ -69,6 +69,7 @@ class LoginViewController: UIViewController {
         let textField = UITextField()
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
+        textField.textColor = .black
         textField.keyboardType = .emailAddress
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
@@ -90,6 +91,7 @@ class LoginViewController: UIViewController {
         textField.isSecureTextEntry = true
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
+        textField.textColor = .black
         textField.setLeftPadding(16)
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
@@ -692,44 +694,74 @@ class LoginViewController: UIViewController {
     private func saveAppleUserData(firebaseUser: User,
                                 name: String?,
                                 email: String?) {
-
-        let db  = Firestore.firestore()
+        let db = Firestore.firestore()
         let ref = db.collection("users").document(firebaseUser.uid)
 
-        // ── Work out what name we should store ──────────────────────────────
-        let resolvedName: String
-        if let provided = name, !provided.trimmingCharacters(in: .whitespaces).isEmpty {
-            resolvedName = provided                    // brand‑new name from Apple
-            UserDefaults.standard.set(provided,
-                                    forKey: "apple_user_name_\(firebaseUser.uid)")
-        } else if let cached = UserDefaults.standard
-                    .string(forKey: "apple_user_name_\(firebaseUser.uid)") {
-            resolvedName = cached                      // previously cached name
-        } else {
-            resolvedName = "Apple User"                // final fallback
-        }
-
-        // ── Build the payload ───────────────────────────────────────────────
-        var data: [String: Any] = [
-            "uid"      : firebaseUser.uid,
-            "provider" : "apple",
-            "name"     : resolvedName,
-            "username" : generateUsername(from: resolvedName),
-            "email"    : email ?? firebaseUser.email ?? "",
-            "score"    : 0,
-            "followers": [],
-            "following": []
-        ]
-
-        // merge keeps any other fields you’re storing
-        ref.setData(data, merge: true) { [weak self] error in
-            guard error == nil else {
-                print("Error saving Apple user: \(error!.localizedDescription)")
-                return
+        // Check for existing user data first
+        ref.getDocument { [weak self] snapshot, _ in
+            guard let self = self else { return }
+            
+            let resolvedName: String
+            if let provided = name, !provided.trimmingCharacters(in: .whitespaces).isEmpty {
+                resolvedName = provided                    // brand‑new name from Apple
+                UserDefaults.standard.set(provided,
+                                        forKey: "apple_user_name_\(firebaseUser.uid)")
+            } else if let cached = UserDefaults.standard
+                        .string(forKey: "apple_user_name_\(firebaseUser.uid)") {
+                resolvedName = cached                      // previously cached name
+            } else {
+                resolvedName = "Apple User"                // final fallback
             }
-            UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
-            UserDefaults.standard.set(true,            forKey: "isLoggedIn")
-            self?.transitionToMainApp()
+
+            // ── Build the payload ───────────────────────────────────────────────
+            var data: [String: Any] = [
+                "uid"      : firebaseUser.uid,
+                "provider" : "apple",
+                "name"     : resolvedName,
+                "username" : self.generateUsername(from: resolvedName),
+                "email"    : email ?? firebaseUser.email ?? "",
+                "createdAt": FieldValue.serverTimestamp()
+            ]
+            
+            // Preserve existing score if it exists
+            if let existingData = snapshot?.data(), 
+            let existingScore = existingData["score"] as? Int {
+                data["score"] = existingScore
+            } else {
+                data["score"] = 0
+            }
+            
+            // Set followers and following arrays
+            if let existingData = snapshot?.data(),
+            let followers = existingData["followers"] as? [String] {
+                data["followers"] = followers
+            } else {
+                data["followers"] = []
+            }
+            
+            if let existingData = snapshot?.data(),
+            let following = existingData["following"] as? [String] {
+                data["following"] = following
+            } else {
+                data["following"] = []
+            }
+
+            // merge keeps any other fields you're storing
+            ref.setData(data, merge: true) { [weak self] error in
+                // Remove loading indicator if present
+                if let activityIndicator = self?.view.subviews.first(where: { $0 is UIActivityIndicatorView }) as? UIActivityIndicatorView {
+                    activityIndicator.removeFromSuperview()
+                }
+                self?.view.isUserInteractionEnabled = true
+                
+                guard error == nil else {
+                    print("Error saving Apple user: \(error!.localizedDescription)")
+                    return
+                }
+                UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                self?.transitionToMainApp()
+            }
         }
     }
 

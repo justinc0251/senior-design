@@ -12,6 +12,15 @@ class UserSearchViewController: UIViewController {
     
     var accentColor: UIColor = .systemBlue
     
+    // Define consistent colors for both light and dark modes
+    private let backgroundColor = UIColor.white
+    private let cellBackgroundColor = UIColor.white
+    private let textPrimaryColor = UIColor.black
+    private let textSecondaryColor = UIColor.darkGray
+    private let separatorColor = UIColor(white: 0.9, alpha: 1.0)
+    private let searchBarBackgroundColor = UIColor(white: 0.95, alpha: 1.0)
+    private let avatarBackgroundColor = UIColor(white: 0.9, alpha: 1.0)
+    
     private var searchResults: [(username: String, name: String, userId: String)] = []
     private var isSearching = false
     
@@ -22,7 +31,7 @@ class UserSearchViewController: UIViewController {
     
     private func setupUI() {
         title = "Find Friends"
-        view.backgroundColor = .white
+        view.backgroundColor = backgroundColor
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel,
@@ -32,7 +41,7 @@ class UserSearchViewController: UIViewController {
         
         searchBar.placeholder = "Search by username or name"
         searchBar.delegate = self
-        searchBar.searchTextField.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+        searchBar.searchTextField.backgroundColor = searchBarBackgroundColor
         searchBar.tintColor = accentColor
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(searchBar)
@@ -40,7 +49,7 @@ class UserSearchViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none
-        tableView.backgroundColor = .white
+        tableView.backgroundColor = backgroundColor
         tableView.register(SearchResultCell.self, forCellReuseIdentifier: "SearchResultCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
@@ -79,7 +88,7 @@ class UserSearchViewController: UIViewController {
         
         let label = UILabel()
         label.text = "Search for users to add as friends"
-        label.textColor = .darkGray
+        label.textColor = textSecondaryColor
         label.font = UIFont(name: "Sen-Regular", size: 16)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -353,7 +362,12 @@ class SearchResultCell: UITableViewCell {
     
     private func setupCell() {
         selectionStyle = .none
-        backgroundColor = .white
+        backgroundColor = .white // Force white background in both modes
+        
+        // Force cell content background to be white
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .white
+        self.backgroundView = backgroundView
         
         avatarView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
         avatarView.layer.cornerRadius = 25
@@ -367,12 +381,12 @@ class SearchResultCell: UITableViewCell {
         avatarView.addSubview(avatarLabel)
         
         nameLabel.font = UIFont(name: "Sen-Regular", size: 16)
-        nameLabel.textColor = .black
+        nameLabel.textColor = .black  // Force black text in both modes
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(nameLabel)
         
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 14)
-        usernameLabel.textColor = .darkGray
+        usernameLabel.textColor = .darkGray  // Force dark gray text in both modes
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(usernameLabel)
         

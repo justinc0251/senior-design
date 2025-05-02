@@ -378,7 +378,6 @@ class QuizGameViewController: UIViewController {
         
         for stackView in [row1StackView, row2StackView] {
             for case let button as UIButton in stackView.arrangedSubviews {
-                // Remove any existing X marks
                 button.subviews.forEach { subview in
                     if subview.tag == 888 {
                         subview.removeFromSuperview()

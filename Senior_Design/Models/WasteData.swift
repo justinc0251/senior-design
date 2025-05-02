@@ -12,7 +12,6 @@ class WasteData {
         "recycle2": "Aluminum can",
         "recycle3": "Cardboard box",
         "recycle4": "Glass bottle",
-        "recycle5": "Tin can",
         "recycle6": "Newspaper",
         "recycle7": "Office paper",
         "recycle8": "Textbook",
@@ -97,7 +96,7 @@ class WasteData {
     ]
 
     let categories: [String: [String]] = [
-        "recycle": ["recycle1", "recycle2", "recycle3", "recycle4", "recycle5", "recycle6", "recycle7", "recycle8", "recycle10", "recycle11", "recycle12", "recycle13", "recycle14", "recycle15", "recycle16", "recycle18", "recycle19", "recycle22", "recycle23", "recycle24", "recycle25", "recycle26", "recycle27"],
+        "recycle": ["recycle1", "recycle2", "recycle3", "recycle4", "recycle6", "recycle7", "recycle8", "recycle10", "recycle11", "recycle12", "recycle13", "recycle14", "recycle15", "recycle16", "recycle18", "recycle19", "recycle22", "recycle23", "recycle24", "recycle25", "recycle26", "recycle27"],
         "landfill": ["landfill1", "landfill2", "landfill3", "landfill4", "landfill5", "landfill7", "landfill9", "landfill10", "landfill11", "landfill12", "landfill13", "landfill14", "landfill15", "landfill16", "landfill17", "landfill18", "landfill19", "landfill20", "landfill21"],
         "compost": ["compost1", "compost2", "compost3", "compost4", "compost5", "compost6", "compost7", "compost8", "compost9", "compost10", "compost11", "compost12", "compost13", "compost14", "compost16", "compost17", "compost19", "compost20", "compost21", "compost22", "compost23"],
         "hazard": ["hazard1", "hazard2", "hazard3", "hazard4", "hazard5", "hazard6", "hazard7", "hazard8", "hazard9", "hazard10", "hazard11", "hazard12", "hazard13", "hazard14", "hazard15", "hazard16", "hazard17", "hazard18", "hazard19", "hazard20", "hazard21", "hazard22", "hazard23"]

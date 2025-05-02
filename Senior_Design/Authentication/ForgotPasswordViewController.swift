@@ -56,6 +56,7 @@ class ForgotPasswordViewController: UIViewController {
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(16)
+        textField.textColor = .black
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
@@ -97,7 +98,6 @@ class ForgotPasswordViewController: UIViewController {
         setupUI()
         setupActions()
         
-        // Add tap gesture to dismiss keyboard
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
@@ -127,7 +127,6 @@ class ForgotPasswordViewController: UIViewController {
     private func setupConstraints() {
         let horizontalPadding: CGFloat = 24
         
-        // Title and subtitle
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -138,14 +137,12 @@ class ForgotPasswordViewController: UIViewController {
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
         
-        // Form container
         NSLayoutConstraint.activate([
             formContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 40),
             formContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: horizontalPadding),
             formContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -horizontalPadding)
         ])
         
-        // Email field and reset button
         NSLayoutConstraint.activate([
             emailTextField.topAnchor.constraint(equalTo: formContainer.topAnchor, constant: 20),
             emailTextField.leadingAnchor.constraint(equalTo: formContainer.leadingAnchor, constant: 20),
@@ -160,7 +157,6 @@ class ForgotPasswordViewController: UIViewController {
             formContainer.bottomAnchor.constraint(equalTo: resetButton.bottomAnchor, constant: 20)
         ])
         
-        // Back button
         NSLayoutConstraint.activate([
             backButton.topAnchor.constraint(equalTo: formContainer.bottomAnchor, constant: 20),
             backButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -182,20 +178,16 @@ class ForgotPasswordViewController: UIViewController {
             return
         }
         
-        // Show loading indicator
         let activityIndicator = UIActivityIndicatorView(style: .medium)
         activityIndicator.center = view.center
         activityIndicator.startAnimating()
         view.addSubview(activityIndicator)
         
-        // Disable interaction during API call
         view.isUserInteractionEnabled = false
         
-        // Send password reset email
         Auth.auth().sendPasswordReset(withEmail: email) { [weak self] error in
             guard let self = self else { return }
             
-            // Re-enable interaction and remove loading indicator
             self.view.isUserInteractionEnabled = true
             activityIndicator.removeFromSuperview()
             
@@ -204,7 +196,6 @@ class ForgotPasswordViewController: UIViewController {
                 return
             }
             
-            // Show success alert
             let alert = UIAlertController(
                 title: "Email Sent",
                 message: "A password reset link has been sent to \(email). Please check your inbox.",
