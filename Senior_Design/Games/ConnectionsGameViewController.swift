@@ -18,7 +18,6 @@ class ConnectionsGameViewController: UIViewController {
     var buttonCategories: [Int: String] = [:]
     var buttonImages: [Int: String] = [:]
     
-    // Tutorial properties
     private var isTutorialActive = false
     private var tutorialStep = 0
     private var tutorialTargetButton: UIButton?
@@ -191,16 +190,13 @@ class ConnectionsGameViewController: UIViewController {
         attemptsContainerView.backgroundColor = .clear
         attemptsContainerView.layer.shadowOpacity = 0
         
-        // Check if user has played this game before
         let hasPlayedBefore = UserDefaults.standard.bool(forKey: "connections_tutorial_shown")
         
         if !hasPlayedBefore {
-            // First time playing - show welcome/tutorial modal
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.showWelcomeModal()
             }
         } else {
-            // Returning player - start game directly
             startTimer()
         }
     }
@@ -401,9 +397,7 @@ class ConnectionsGameViewController: UIViewController {
         
         let wasSelected = selectedButtons.contains(sender)
         
-        // Prevent deselection of tutorial target buttons during step 2
         if wasSelected && isTutorialActive && tutorialStep == 2 && sender.accessibilityIdentifier == "tutorialTargetButton" {
-            // Don't allow deselection of correctly selected tutorial buttons
             return
         }
         
@@ -421,7 +415,6 @@ class ConnectionsGameViewController: UIViewController {
             selectedButtons.insert(sender)
         }
         
-        // Send notification after updating the selectedButtons collection
         if isTutorialActive && tutorialStep == 2 {
             NotificationCenter.default.post(
                 name: NSNotification.Name("TutorialButtonTapped"),
@@ -612,7 +605,6 @@ class ConnectionsGameViewController: UIViewController {
     // MARK: - Timer Methods
     
     private func startTimer() {
-        // Always invalidate any existing timer first
         gameTimer?.invalidate()
         gameTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
     }
@@ -652,9 +644,8 @@ class ConnectionsGameViewController: UIViewController {
 
         GameHistoryManager.shared.saveGameHistory(gameName: "Connections", score: 10)
         
-        // Add a blocking overlay to prevent interaction with background elements
         let blockingOverlay = UIView(frame: view.bounds)
-        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) // Semi-transparent overlay
+        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) 
         blockingOverlay.isUserInteractionEnabled = true
         blockingOverlay.tag = 998
         view.addSubview(blockingOverlay)
@@ -668,7 +659,7 @@ class ConnectionsGameViewController: UIViewController {
         resultContainerView.layer.shadowRadius = 20
         resultContainerView.layer.shadowOpacity = 1
         resultContainerView.alpha = 0
-        resultContainerView.tag = 999  // Add tag to identify this view for removal
+        resultContainerView.tag = 999  
         view.addSubview(resultContainerView)
         
         
@@ -740,16 +731,13 @@ class ConnectionsGameViewController: UIViewController {
     }
 
     private func cleanupTutorialState() {
-        // Remove all tutorial-related notification observers
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name("TutorialLongPressCompleted"), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name("TutorialButtonTapped"), object: nil)
         
-        // Reset tutorial state variables
         isTutorialActive = false
         tutorialStep = 0
         tutorialTargetButton = nil
         
-        // Remove any UI elements from previous tutorial
         tutorialOverlayView?.removeFromSuperview()
         tutorialOverlayView = nil
         tutorialHandView?.removeFromSuperview()
@@ -757,7 +745,6 @@ class ConnectionsGameViewController: UIViewController {
         tutorialMessageView?.removeFromSuperview()
         tutorialMessageView = nil
         
-        // Reset any buttons with tutorial identifiers
         for subview in gridContainerView.subviews {
             if let button = subview as? UIButton {
                 button.accessibilityIdentifier = nil
@@ -768,7 +755,6 @@ class ConnectionsGameViewController: UIViewController {
             }
         }
         
-        // Remove any pulse effects
         view.subviews.forEach { subview in
             if subview.tag == 1234 {
                 subview.removeFromSuperview()
@@ -798,7 +784,6 @@ class ConnectionsGameViewController: UIViewController {
         }
         selectedButtons.removeAll()
         
-        // Add a blocking overlay to prevent interaction with background elements
         let blockingOverlay = UIView(frame: view.bounds)
         blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         blockingOverlay.isUserInteractionEnabled = true
@@ -936,9 +921,8 @@ class ConnectionsGameViewController: UIViewController {
     @objc private func helpButtonTapped() {
         gameTimer?.invalidate()
         
-        // Add a blocking overlay to prevent interaction with background elements
         let blockingOverlay = UIView(frame: view.bounds)
-        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) // Semi-transparent overlay
+        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) 
         blockingOverlay.isUserInteractionEnabled = true
         blockingOverlay.tag = 998
         view.addSubview(blockingOverlay)
@@ -959,7 +943,7 @@ class ConnectionsGameViewController: UIViewController {
             helpContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             helpContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             helpContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
-            helpContainerView.heightAnchor.constraint(equalToConstant: 640) // Increased height to accommodate the new button
+            helpContainerView.heightAnchor.constraint(equalToConstant: 640) 
         ])
         
         let helpIcon = UIImageView()
@@ -986,7 +970,6 @@ class ConnectionsGameViewController: UIViewController {
         instructionsLabel.numberOfLines = 0
         helpContainerView.addSubview(instructionsLabel)
         
-        // Play Tutorial button
         let playTutorialButton = UIButton(type: .system)
         playTutorialButton.translatesAutoresizingMaskIntoConstraints = false
         playTutorialButton.setTitle("Play Tutorial Again", for: .normal)
@@ -997,7 +980,6 @@ class ConnectionsGameViewController: UIViewController {
         playTutorialButton.addTarget(self, action: #selector(playTutorialFromHelp), for: .touchUpInside)
         helpContainerView.addSubview(playTutorialButton)
         
-        // Got it button
         let gotItButton = UIButton(type: .system)
         gotItButton.translatesAutoresizingMaskIntoConstraints = false
         gotItButton.setTitle("Got it", for: .normal)
@@ -1023,20 +1005,17 @@ class ConnectionsGameViewController: UIViewController {
             instructionsLabel.trailingAnchor.constraint(equalTo: helpContainerView.trailingAnchor, constant: -24),
             instructionsLabel.bottomAnchor.constraint(lessThanOrEqualTo: playTutorialButton.topAnchor, constant: -30),
             
-            // Play Tutorial button - positioned above Got it button
             playTutorialButton.bottomAnchor.constraint(equalTo: gotItButton.topAnchor, constant: -15),
             playTutorialButton.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
             playTutorialButton.widthAnchor.constraint(equalToConstant: 200),
             playTutorialButton.heightAnchor.constraint(equalToConstant: 50),
             
-            // Got it button at the bottom
             gotItButton.bottomAnchor.constraint(equalTo: helpContainerView.bottomAnchor, constant: -40),
             gotItButton.centerXAnchor.constraint(equalTo: helpContainerView.centerXAnchor),
             gotItButton.widthAnchor.constraint(equalToConstant: 200),
             gotItButton.heightAnchor.constraint(equalToConstant: 50)
         ])
         
-        // Also add a dismissal handler for the blocking overlay
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissHelpModal))
         blockingOverlay.addGestureRecognizer(tapGesture)
         
@@ -1045,9 +1024,7 @@ class ConnectionsGameViewController: UIViewController {
         })
     }
 
-    // Add this new method to handle the play tutorial button action
     @objc private func playTutorialFromHelp() {
-        // Remove the help modal and blocking overlay first
         for subview in view.subviews where subview.tag == 999 || subview.tag == 998 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0
@@ -1055,12 +1032,9 @@ class ConnectionsGameViewController: UIViewController {
                 guard let self = self else { return }
                 subview.removeFromSuperview()
                 
-                // When last overlay is removed, reset the game and then start tutorial
                 if subview.tag == 999 {
-                    // Clean up any existing tutorial state first
                     self.cleanupTutorialState()
                     
-                    // Reset game state (reuse code from restartGame but without starting timer)
                     self.gameTimer?.invalidate()
                     self.gameTimer = nil
                     
@@ -1074,7 +1048,6 @@ class ConnectionsGameViewController: UIViewController {
                     self.timerLabel.textColor = Theme.primaryText
                     self.timerLabel.text = "2:00"
                     
-                    // Clear grid elements
                     for subview in self.gridContainerView.subviews {
                         UIView.animate(withDuration: 0.2, animations: {
                             subview.alpha = 0
@@ -1083,12 +1056,10 @@ class ConnectionsGameViewController: UIViewController {
                         }
                     }
                     
-                    // Give time for animations to complete before rebuilding grid
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self.setupGrid()
                         self.updateAttemptsDots()
                         
-                        // Now start tutorial with fresh game state
                         self.startTutorial()
                     }
                 }
@@ -1097,9 +1068,6 @@ class ConnectionsGameViewController: UIViewController {
     }
 
     @objc private func dismissHelpModal() {
-        // We should always restart the timer when dismissing the help modal
-        // since we know it was invalidated when opening the help modal
-        
         for subview in view.subviews where subview.tag == 999 || subview.tag == 998 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0
@@ -1107,9 +1075,8 @@ class ConnectionsGameViewController: UIViewController {
                 guard let self = self else { return }
                 subview.removeFromSuperview()
                 
-                // Only start the timer once, when the modal itself is removed
                 if subview.tag == 999 {
-                    self.gameTimer?.invalidate() // Cancel any existing timer just to be safe
+                    self.gameTimer?.invalidate() 
                     self.startTimer()
                 }
             }
@@ -1118,12 +1085,12 @@ class ConnectionsGameViewController: UIViewController {
 
     @objc private func showAnswersTapped(_ sender: UIButton) {
         view.subviews.forEach { view in
-            if view.tag == 999 || view.tag == 998 {  // Remove both modal and blocking overlay
+            if view.tag == 999 || view.tag == 998 {  
                 UIView.animate(withDuration: 0.3, animations: {
                     view.alpha = 0
                 }) { _ in
                     view.removeFromSuperview()
-                    if view.tag == 999 {  // Only call revealCorrectAnswers once
+                    if view.tag == 999 {  
                         self.revealCorrectAnswers()
                     }
                 }
@@ -1132,11 +1099,10 @@ class ConnectionsGameViewController: UIViewController {
     }
     
     @objc private func restartGame() {
-        // Invalidate the existing timer first
         gameTimer?.invalidate()
         gameTimer = nil
+        helpButton.isHidden = false
         
-        // First remove any modal views AND blocking overlays
         view.subviews.forEach { view in
             if view.tag == 999 || view.tag == 998 {
                 UIView.animate(withDuration: 0.3, animations: {
@@ -1203,6 +1169,7 @@ extension ConnectionsGameViewController {
     private func startTutorial() {
         isTutorialActive = true
         gameTimer?.invalidate()
+        helpButton.isHidden = true
         
         disableAllButtonsExcept(nil)
         
@@ -1229,7 +1196,7 @@ extension ConnectionsGameViewController {
     }
     
     // MARK: - Tutorial overlay
-
+    
     private func createTutorialOverlay() {
         tutorialOverlayView?.removeFromSuperview()
         
@@ -1255,20 +1222,18 @@ extension ConnectionsGameViewController {
                 button.layer.borderColor = Theme.accentColor.cgColor
                 button.layer.masksToBounds = true
             } else if tutorialStep == 1 {
-                // Only dim non-target buttons in step 1
                 let dimView = UIView(frame: button.convert(button.bounds, to: view))
                 dimView.backgroundColor = UIColor.black.withAlphaComponent(0.65)
                 dimView.layer.cornerRadius = button.layer.cornerRadius
                 overlay.addSubview(dimView)
             } else {
-                // Keep all buttons interactive in step 2
                 button.isUserInteractionEnabled = true
             }
         }
         
         overlay.isUserInteractionEnabled = false
     }
-
+    
     
     private func createTutorialMessage(_ text: String) {
         tutorialMessageView?.removeFromSuperview()
@@ -1294,7 +1259,7 @@ extension ConnectionsGameViewController {
         messageView.addSubview(messageLabel)
         
         NSLayoutConstraint.activate([
-            messageView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -140),  // Changed from -100 to -140
+            messageView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -140),
             messageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             messageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
             messageView.heightAnchor.constraint(greaterThanOrEqualToConstant: 60),
@@ -1346,7 +1311,7 @@ extension ConnectionsGameViewController {
         pulseView.layer.cornerRadius = 25
         pulseView.center = CGPoint(x: buttonFrame.midX, y: buttonFrame.midY)
         pulseView.isUserInteractionEnabled = false
-        pulseView.tag = 1234 // Add tag so we can find and remove this view later
+        pulseView.tag = 1234
         view.addSubview(pulseView)
         
         button.superview?.bringSubviewToFront(button)
@@ -1381,7 +1346,7 @@ extension ConnectionsGameViewController {
                         button.setImage(UIImage(named: imageName), for: .normal)
                     }
                 }) { _ in
-                    // Do not prompt the user again, just continue showing the pulsing animation
+                    
                 }
             }
         }
@@ -1414,7 +1379,6 @@ extension ConnectionsGameViewController {
     }
     
     @objc private func handleTutorialGestureCompleted() {
-        // Remove pulse effects immediately after gesture is completed
         view.subviews.forEach { subview in
             if subview.tag == 1234 {
                 subview.removeFromSuperview()
@@ -1431,7 +1395,6 @@ extension ConnectionsGameViewController {
         tutorialHandView?.removeFromSuperview()
         tutorialMessageView?.removeFromSuperview()
         
-        // Store the tutorial target buttons and their category before resetting appearances
         let targetButtons = gridContainerView.subviews.compactMap { view -> UIButton? in
             if let button = view as? UIButton, button.accessibilityIdentifier == "tutorialTargetButton" {
                 return button
@@ -1439,23 +1402,18 @@ extension ConnectionsGameViewController {
             return nil
         }
         
-        // Get the category for these buttons (they should all be the same)
         var targetCategory: String?
         if let firstButton = targetButtons.first, let tag = firstButton.tag as Int?, let category = buttonCategories[tag] {
             targetCategory = category
         }
         
-        // Reset button appearances EXCEPT for the target buttons from step 2
         for subview in gridContainerView.subviews {
             if let button = subview as? UIButton {
-                // Don't reset border for tutorial target buttons in step 2
                 if tutorialStep == 2 && button.accessibilityIdentifier == "tutorialTargetButton" {
-                    // Keep the border, just remove the identifier and ensure interaction
                     button.accessibilityIdentifier = nil
                     button.isUserInteractionEnabled = true
                     button.layer.masksToBounds = false
                 } else {
-                    // Reset completely for non-target buttons
                     button.layer.borderWidth = 0
                     button.layer.borderColor = nil
                     button.accessibilityIdentifier = nil
@@ -1465,7 +1423,6 @@ extension ConnectionsGameViewController {
             }
         }
         
-        // Remove any pulse effects
         view.subviews.forEach { subview in
             if subview.tag == 1234 {
                 subview.removeFromSuperview()
@@ -1482,7 +1439,6 @@ extension ConnectionsGameViewController {
             return
         }
         
-        // Apply proper category color to the target buttons if we're completing step 2
         if tutorialStep == 2, let category = targetCategory {
             let borderColor = Theme.categoryColors[category] ?? Theme.accentColor
             
@@ -1499,7 +1455,7 @@ extension ConnectionsGameViewController {
         
         showTutorialCompletionMessage()
     }
-
+    
     private func showCategoryMatchingTutorial() {
         var categoryButtons: [String: [UIButton]] = [:]
         var targetCategory: String?
@@ -1534,7 +1490,7 @@ extension ConnectionsGameViewController {
         
         showCategorySelectionTutorial(category: category, buttons: targetButtons)
     }
-
+    
     private func showCategorySelectionTutorial(category: String, buttons: [UIButton]) {
         for subview in gridContainerView.subviews {
             if let button = subview as? UIButton {
@@ -1545,14 +1501,12 @@ extension ConnectionsGameViewController {
         
         createTutorialOverlay()
         
-        // Update the message to include the specific category
         let categoryName = category.capitalized
         createTutorialMessage("Find 4 \(categoryName) items\nLook for items that go in the \(categoryName) bin")
         
         for button in buttons {
             button.accessibilityIdentifier = "tutorialTargetButton"
             
-            // Add pulsing effect to each target button
             highlightTutorialButton(button)
         }
         
@@ -1563,7 +1517,7 @@ extension ConnectionsGameViewController {
             object: nil
         )
     }
-
+    
     private func highlightTutorialButton(_ button: UIButton) {
         let buttonFrame = button.convert(button.bounds, to: view)
         
@@ -1583,19 +1537,15 @@ extension ConnectionsGameViewController {
             pulseView.alpha = 0.5
         })
     }
-
+    
     @objc private func handleTutorialButtonTapped(_ notification: Notification) {
         guard let button = notification.object as? UIButton else { return }
         
-        // Check if the tapped button is actually a tutorial target button
         let isTargetButton = button.accessibilityIdentifier == "tutorialTargetButton"
         
-        // Only show positive messages if the user tapped a target button
         if !isTargetButton {
-            // For non-target buttons, show a hint message instead
             updateTutorialMessage("Try selecting one of the highlighted items")
             
-            // Deselect the non-target button
             UIView.animate(withDuration: 0.2) {
                 button.backgroundColor = Theme.cardColor
                 button.transform = .identity
@@ -1605,17 +1555,14 @@ extension ConnectionsGameViewController {
             return
         }
         
-        // From here, we know the user tapped a correct target button
         let selectedCount = selectedButtons.count
         
-        // Only remove the pulse effect for the target button that was just tapped
         for subview in view.subviews {
             if subview.tag == 1234 {
                 let pulseCenter = subview.center
                 let buttonFrame = button.convert(button.bounds, to: view)
                 let buttonCenter = CGPoint(x: buttonFrame.midX, y: buttonFrame.midY)
                 
-                // If this pulse is associated with the tapped button, remove it
                 if hypot(pulseCenter.x - buttonCenter.x, pulseCenter.y - buttonCenter.y) < 30 {
                     subview.removeFromSuperview()
                 }
@@ -1631,7 +1578,6 @@ extension ConnectionsGameViewController {
         } else if selectedCount == 4 {
             updateTutorialMessage("Great job! You've completed the category!")
             
-            // Only remove all pulse effects when all 4 buttons are selected
             view.subviews.forEach { subview in
                 if subview.tag == 1234 {
                     subview.removeFromSuperview()
@@ -1643,15 +1589,12 @@ extension ConnectionsGameViewController {
             }
         }
     }
-
-    // Add this method to the ConnectionsGameViewController class
+    
     private func showWelcomeModal() {
-        // Stop any running timer
         gameTimer?.invalidate()
         
-        // Add a blocking overlay to prevent interaction with background elements
         let blockingOverlay = UIView(frame: view.bounds)
-        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) // Semi-transparent overlay
+        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         blockingOverlay.isUserInteractionEnabled = true
         blockingOverlay.tag = 998
         view.addSubview(blockingOverlay)
@@ -1672,10 +1615,9 @@ extension ConnectionsGameViewController {
             welcomeContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             welcomeContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             welcomeContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
-            welcomeContainerView.heightAnchor.constraint(equalToConstant: 530) // Increased height from 520 to 560
+            welcomeContainerView.heightAnchor.constraint(equalToConstant: 530)
         ])
         
-        // Icon
         let welcomeIcon = UIImageView()
         welcomeIcon.translatesAutoresizingMaskIntoConstraints = false
         welcomeIcon.contentMode = .scaleAspectFit
@@ -1683,7 +1625,6 @@ extension ConnectionsGameViewController {
         welcomeIcon.image = UIImage(systemName: "lightbulb.fill")
         welcomeContainerView.addSubview(welcomeIcon)
         
-        // Title
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Welcome to Connections!"
@@ -1693,7 +1634,6 @@ extension ConnectionsGameViewController {
         titleLabel.numberOfLines = 0
         welcomeContainerView.addSubview(titleLabel)
         
-        // Message
         let messageLabel = UILabel()
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.text = "Group waste items into their correct categories: Landfill, Recycling, Compost, and Hazardous.\n\n• Select 4 items of the same category to complete a group\n• You have 4 attempts and 2 minutes to find all groups\n• Long press on items to see what they are"
@@ -1703,7 +1643,6 @@ extension ConnectionsGameViewController {
         messageLabel.numberOfLines = 0
         welcomeContainerView.addSubview(messageLabel)
         
-        // Tutorial button
         let startTutorialButton = UIButton(type: .system)
         startTutorialButton.translatesAutoresizingMaskIntoConstraints = false
         startTutorialButton.setTitle("Start Tutorial", for: .normal)
@@ -1714,7 +1653,6 @@ extension ConnectionsGameViewController {
         startTutorialButton.addTarget(self, action: #selector(startTutorialFromWelcome), for: .touchUpInside)
         welcomeContainerView.addSubview(startTutorialButton)
         
-        // Skip tutorial button
         let skipTutorialButton = UIButton(type: .system)
         skipTutorialButton.translatesAutoresizingMaskIntoConstraints = false
         skipTutorialButton.setTitle("Skip Tutorial", for: .normal)
@@ -1738,7 +1676,6 @@ extension ConnectionsGameViewController {
             messageLabel.leadingAnchor.constraint(equalTo: welcomeContainerView.leadingAnchor, constant: 30),
             messageLabel.trailingAnchor.constraint(equalTo: welcomeContainerView.trailingAnchor, constant: -30),
             
-            // Add bottom constraint to message label
             messageLabel.bottomAnchor.constraint(lessThanOrEqualTo: startTutorialButton.topAnchor, constant: -10),
             
             startTutorialButton.bottomAnchor.constraint(equalTo: skipTutorialButton.topAnchor, constant: -12),
@@ -1751,15 +1688,12 @@ extension ConnectionsGameViewController {
             skipTutorialButton.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        // Animate in
         UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
             welcomeContainerView.alpha = 1
         })
     }
-
-    // Add these action methods for the buttons
+    
     @objc private func startTutorialFromWelcome() {
-        // Remove the welcome modal and blocking overlay
         for subview in view.subviews where subview.tag == 999 || subview.tag == 998 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0
@@ -1767,7 +1701,6 @@ extension ConnectionsGameViewController {
                 guard let self = self else { return }
                 subview.removeFromSuperview()
                 
-                // Start the tutorial if it was the modal that was removed
                 if subview.tag == 999 {
                     self.cleanupTutorialState()
                     self.startTutorial()
@@ -1775,18 +1708,16 @@ extension ConnectionsGameViewController {
             }
         }
     }
-
+    
     @objc private func skipTutorialFromWelcome() {
-        // Mark that the user has seen the tutorial (even if skipped)
         UserDefaults.standard.set(true, forKey: "connections_tutorial_shown")
+        helpButton.isHidden = false
         
-        // Remove the welcome modal and blocking overlay
         for subview in view.subviews where subview.tag == 999 || subview.tag == 998 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0
             }) { _ in
                 subview.removeFromSuperview()
-                // Start the game if it was the modal that was removed
                 if subview.tag == 999 {
                     self.startTimer()
                 }
@@ -1795,14 +1726,12 @@ extension ConnectionsGameViewController {
     }
     
     private func showTutorialCompletionMessage() {
-        // Add a blocking overlay to prevent interaction with background elements
         let blockingOverlay = UIView(frame: view.bounds)
-        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2) // Semi-transparent overlay
+        blockingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         blockingOverlay.isUserInteractionEnabled = true
         blockingOverlay.tag = 998
         view.addSubview(blockingOverlay)
         
-        // Create a styled modal similar to the help modal
         let completionContainerView = UIView()
         completionContainerView.translatesAutoresizingMaskIntoConstraints = false
         completionContainerView.backgroundColor = Theme.cardColor
@@ -1822,7 +1751,6 @@ extension ConnectionsGameViewController {
             completionContainerView.heightAnchor.constraint(equalToConstant: 320)
         ])
         
-        // Success icon
         let completionIcon = UIImageView()
         completionIcon.translatesAutoresizingMaskIntoConstraints = false
         completionIcon.contentMode = .scaleAspectFit
@@ -1830,7 +1758,6 @@ extension ConnectionsGameViewController {
         completionIcon.image = UIImage(systemName: "checkmark.circle.fill")
         completionContainerView.addSubview(completionIcon)
         
-        // Title
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Ready to Play!"
@@ -1839,7 +1766,6 @@ extension ConnectionsGameViewController {
         titleLabel.textAlignment = .center
         completionContainerView.addSubview(titleLabel)
         
-        // Message
         let messageLabel = UILabel()
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.text = "Great job! You've found one category. Now find the other three categories to complete the game!"
@@ -1849,7 +1775,6 @@ extension ConnectionsGameViewController {
         messageLabel.numberOfLines = 0
         completionContainerView.addSubview(messageLabel)
         
-        // Let's play button
         let letsPlayButton = UIButton(type: .system)
         letsPlayButton.translatesAutoresizingMaskIntoConstraints = false
         letsPlayButton.setTitle("Let's Play", for: .normal)
@@ -1880,14 +1805,12 @@ extension ConnectionsGameViewController {
             letsPlayButton.heightAnchor.constraint(equalToConstant: 50)
         ])
         
-        // Animate in
         UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
             completionContainerView.alpha = 1
         })
     }
-
+    
     @objc private func dismissCompletionModal() {
-        // Remove both the completion modal and the blocking overlay
         for subview in view.subviews where subview.tag == 999 || subview.tag == 998 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0
@@ -1895,13 +1818,12 @@ extension ConnectionsGameViewController {
                 guard let self = self else { return }
                 subview.removeFromSuperview()
                 
-                // Only start the timer when the modal is removed
                 if subview.tag == 999 {
-                    // Reset the timer and start it fresh
                     self.remainingTime = 120
                     self.timerLabel.text = "2:00"
-                    self.gameTimer?.invalidate() // Cancel any existing timers
+                    self.gameTimer?.invalidate()
                     self.startTimer()
+                    self.helpButton.isHidden = false
                 }
             }
         }
