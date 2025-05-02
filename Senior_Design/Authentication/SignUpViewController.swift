@@ -53,6 +53,7 @@ class SignUpViewController: UIViewController {
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(16)
+        textField.textColor = .black
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
@@ -72,6 +73,7 @@ class SignUpViewController: UIViewController {
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(16)
+        textField.textColor = .black
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
@@ -89,6 +91,7 @@ class SignUpViewController: UIViewController {
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(16)
+        textField.textColor = .black
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
@@ -106,6 +109,7 @@ class SignUpViewController: UIViewController {
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(16)
+        textField.textColor = .black
         textField.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
