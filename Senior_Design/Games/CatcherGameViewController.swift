@@ -635,7 +635,6 @@ class CatcherGameViewController: UIViewController {
         itemTimer?.invalidate()
         gameTimeTimer?.invalidate()
         
-        // Create modal container view
         let helpContainerView = UIView()
         helpContainerView.translatesAutoresizingMaskIntoConstraints = false
         helpContainerView.backgroundColor = Theme.cardColor
@@ -645,17 +644,16 @@ class CatcherGameViewController: UIViewController {
         helpContainerView.layer.shadowRadius = 20
         helpContainerView.layer.shadowOpacity = 1
         helpContainerView.alpha = 0
-        helpContainerView.tag = 999 // For easy identification
+        helpContainerView.tag = 999 
         view.addSubview(helpContainerView)
         
         NSLayoutConstraint.activate([
             helpContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             helpContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             helpContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
-            helpContainerView.heightAnchor.constraint(equalToConstant: 420) // Increased from 340 to 420
+            helpContainerView.heightAnchor.constraint(equalToConstant: 420) 
         ])
         
-        // Help icon
         let helpIcon = UIImageView()
         helpIcon.translatesAutoresizingMaskIntoConstraints = false
         helpIcon.contentMode = .scaleAspectFit
@@ -663,7 +661,6 @@ class CatcherGameViewController: UIViewController {
         helpIcon.image = UIImage(systemName: "questionmark.circle.fill")
         helpContainerView.addSubview(helpIcon)
         
-        // Title
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "How to Play"
@@ -672,7 +669,6 @@ class CatcherGameViewController: UIViewController {
         titleLabel.textAlignment = .center
         helpContainerView.addSubview(titleLabel)
         
-        // Instructions
         let instructionsLabel = UILabel()
         instructionsLabel.translatesAutoresizingMaskIntoConstraints = false
         instructionsLabel.text = "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Reach 10 points to win\n• You have 60 seconds"
@@ -682,7 +678,6 @@ class CatcherGameViewController: UIViewController {
         instructionsLabel.numberOfLines = 0
         helpContainerView.addSubview(instructionsLabel)
         
-        // Start button
         let startButton = UIButton(type: .system)
         startButton.translatesAutoresizingMaskIntoConstraints = false
         startButton.setTitle("Start Game", for: .normal)
@@ -713,14 +708,12 @@ class CatcherGameViewController: UIViewController {
             startButton.heightAnchor.constraint(equalToConstant: 50)
         ])
         
-        // Animate the modal appearing
         UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [], animations: {
             helpContainerView.alpha = 1
         })
     }
 
     @objc private func dismissHelpAndStartGame() {
-        // Find and remove the help modal view
         for subview in view.subviews where subview.tag == 999 {
             UIView.animate(withDuration: 0.3, animations: {
                 subview.alpha = 0

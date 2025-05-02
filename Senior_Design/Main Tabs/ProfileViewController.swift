@@ -17,7 +17,7 @@ class ProfileViewController: UIViewController {
     private var addFriendsButton: UIButton!
     private var shareButton: UIButton!
     
-    // Recent Activity Properties
+    // MARK: - Recent Activity Properties
     private var activityContainerView: UIView!
     private var activityTitleLabel: UILabel!
     private var noActivityLabel: UILabel!
@@ -49,7 +49,7 @@ class ProfileViewController: UIViewController {
         super.viewWillAppear(animated)
         fetchUserData()
         checkPendingFriendRequests()
-        fetchRecentGames() // Refresh recent games when view appears
+        fetchRecentGames() 
     }
     
     // MARK: - Data Fetching
@@ -143,7 +143,6 @@ class ProfileViewController: UIViewController {
     }
 
     private func updateRecentGamesUI() {
-        // Clear existing game views
         activityStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         
         if recentGames.isEmpty {
@@ -151,7 +150,6 @@ class ProfileViewController: UIViewController {
         } else {
             noActivityLabel.isHidden = true
             
-            // Add game views
             for game in recentGames {
                 let gameView = createGameView(name: game.name, date: game.date, score: game.score)
                 activityStackView.addArrangedSubview(gameView)
@@ -168,7 +166,6 @@ class ProfileViewController: UIViewController {
         container.layer.shadowRadius = 6
         container.layer.shadowOpacity = 1
         
-        // Game icon
         let iconContainer = UIView()
         iconContainer.backgroundColor = accentColor.withAlphaComponent(0.15)
         iconContainer.layer.cornerRadius = 20
@@ -176,7 +173,6 @@ class ProfileViewController: UIViewController {
         container.addSubview(iconContainer)
         
         let iconImageView = UIImageView()
-        // Choose icon based on game name
         if name.contains("Quiz") {
             iconImageView.image = UIImage(systemName: "questionmark")
         } else if name.contains("Connections") {
@@ -191,7 +187,6 @@ class ProfileViewController: UIViewController {
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         iconContainer.addSubview(iconImageView)
         
-        // Game name
         let nameLabel = UILabel()
         nameLabel.text = name
         nameLabel.font = UIFont(name: "Sen-Regular", size: 16)
@@ -199,12 +194,10 @@ class ProfileViewController: UIViewController {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(nameLabel)
         
-        // Format date
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMM d, yyyy"
         let dateString = dateFormatter.string(from: date)
         
-        // Date label
         let dateLabel = UILabel()
         dateLabel.text = dateString
         dateLabel.font = UIFont(name: "Sen-Regular", size: 14)
@@ -212,7 +205,6 @@ class ProfileViewController: UIViewController {
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(dateLabel)
         
-        // Score label
         let scoreLabel = UILabel()
         scoreLabel.text = "\(score) pts"
         scoreLabel.font = UIFont(name: "Sen-Regular", size: 16)
@@ -251,7 +243,6 @@ class ProfileViewController: UIViewController {
     }
 
     private func updateFriendRequestBadge() {
-        // Create a custom button with badge
         let buttonConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
         let envelopeImage = UIImage(systemName: "envelope", withConfiguration: buttonConfig)
         
@@ -260,19 +251,15 @@ class ProfileViewController: UIViewController {
         button.tintColor = accentColor
         button.addTarget(self, action: #selector(handleViewFriendRequests), for: .touchUpInside)
         
-        // Add or remove badge based on pending status
         if hasPendingRequests {
-            // Create badge indicator
             let badgeSize: CGFloat = 12
             let badge = UIView(frame: CGRect(x: 18, y: 0, width: badgeSize, height: badgeSize))
             badge.backgroundColor = UIColor.red
             badge.layer.cornerRadius = badgeSize / 2
             
-            // Add white border to make it pop against any background
             badge.layer.borderWidth = 1
             badge.layer.borderColor = UIColor.white.cgColor
             
-            // Optional: Add animation when badge appears
             if friendRequestBadge == nil {
                 badge.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
                 UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: [], animations: {
@@ -287,17 +274,14 @@ class ProfileViewController: UIViewController {
             friendRequestBadge = nil
         }
         
-        // Create bar button item with the custom button
         let barButton = UIBarButtonItem(customView: button)
         
-        // Update the navigation bar with the new items
         if let settingsButton = navigationItem.rightBarButtonItems?.first {
             navigationItem.rightBarButtonItems = [settingsButton, barButton]
         } else {
             navigationItem.rightBarButtonItems = [barButton]
         }
         
-        // Store reference to the new button
         friendRequestsButton = barButton
     }
 
@@ -323,14 +307,12 @@ class ProfileViewController: UIViewController {
             let joinDateString = dateFormatter.string(from: date)
             joinDateLabel.text = "• Joined \(joinDateString)"
         } else if let joinTime = userData["creationTime"] as? Double {
-            // Handle join date stored as a timestamp value
             let date = Date(timeIntervalSince1970: joinTime)
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "MMM yyyy"
             let joinDateString = dateFormatter.string(from: date)
             joinDateLabel.text = "• Joined \(joinDateString)"
         } else {
-            // If no timestamp is available, use current date
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "MMM yyyy"
             let joinDateString = dateFormatter.string(from: Date())
@@ -377,7 +359,7 @@ class ProfileViewController: UIViewController {
         profileImageView.contentMode = .scaleAspectFill
         profileImageView.tintColor = .white
         profileImageView.clipsToBounds = true
-        profileImageView.backgroundColor = accentColor // Keep the green background
+        profileImageView.backgroundColor = accentColor 
         profileImageView.layer.cornerRadius = 40
         profileImageView.layer.borderWidth = 3
         profileImageView.layer.borderColor = UIColor.white.cgColor
@@ -427,7 +409,6 @@ class ProfileViewController: UIViewController {
     }
 
      private func setupRecentActivity() {
-        // Container view
         activityContainerView = UIView()
         activityContainerView.backgroundColor = .white
         activityContainerView.layer.cornerRadius = 16
@@ -438,7 +419,6 @@ class ProfileViewController: UIViewController {
         activityContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(activityContainerView)
         
-        // Title label
         activityTitleLabel = UILabel()
         activityTitleLabel.text = "Recent Activity"
         activityTitleLabel.font = UIFont(name: "Sen-Regular", size: 18)
@@ -446,7 +426,6 @@ class ProfileViewController: UIViewController {
         activityTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         activityContainerView.addSubview(activityTitleLabel)
         
-        // No activity label (shown when there are no games)
         noActivityLabel = UILabel()
         noActivityLabel.text = "No recent games played"
         noActivityLabel.font = UIFont(name: "Sen-Regular", size: 16)
@@ -455,7 +434,6 @@ class ProfileViewController: UIViewController {
         noActivityLabel.translatesAutoresizingMaskIntoConstraints = false
         activityContainerView.addSubview(noActivityLabel)
         
-        // Stack view for game items
         activityStackView = UIStackView()
         activityStackView.axis = .vertical
         activityStackView.spacing = 12
@@ -823,22 +801,18 @@ class ProfileViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
-        // Get user stats - FIX: Cast to UILabel before accessing text property
         let score = (pointsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
         let friendCount = (friendsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
         let username = usernameLabel.text?.replacingOccurrences(of: "@", with: "") ?? "user"
         
-        // Generate achievement message
         let recentGamesCount = recentGames.count
         let hasPlayedGames = recentGamesCount > 0
         
-        // Create the sharing message
         var shareText = "I've earned \(score) points in Literr-acy! "
         
         if hasPlayedGames {
             shareText += "I've played \(recentGamesCount) games recently"
             
-            // Add most recent game info if available
             if let mostRecent = recentGames.first {
                 shareText += " and scored \(mostRecent.score) points in \(mostRecent.name)!"
             } else {
@@ -848,30 +822,24 @@ class ProfileViewController: UIViewController {
             shareText += "Join me to start your waste sorting journey!"
         }
         
-        // Add app link - replace with your actual App Store link when available
         shareText += "\n\nDownload Litter-acy and add me as a friend: @\(username)"
         
-        // Generate a shareable image representing user stats
         let statsImage = generateShareableStatsImage()
         
-        // Share both text and image
         let items: [Any] = [shareText, statsImage]
         let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(activityController, animated: true)
     }
 
-    // Generate a shareable image with user stats
     private func generateShareableStatsImage() -> UIImage {
         let imageSize = CGSize(width: 600, height: 400)
         let renderer = UIGraphicsImageRenderer(size: imageSize)
         
         let image = renderer.image { context in
-            // Background
             let rectangle = CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height)
             context.cgContext.setFillColor(UIColor.white.cgColor)
             context.cgContext.fill(rectangle)
             
-            // Add app name/logo at top
             let appName = "Litter-acy"
             let headerAttributes: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 32, weight: .bold),
@@ -881,7 +849,6 @@ class ProfileViewController: UIViewController {
             appName.draw(at: CGPoint(x: (imageSize.width - headerSize.width) / 2, y: 30), 
                         withAttributes: headerAttributes)
             
-            // Add user name
             let userName = nameLabel.text ?? "User"
             let nameAttributes: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 28, weight: .medium),
@@ -889,7 +856,6 @@ class ProfileViewController: UIViewController {
             ]
             userName.draw(at: CGPoint(x: 40, y: 90), withAttributes: nameAttributes)
             
-            // Add horizontal line
             let path = UIBezierPath()
             path.move(to: CGPoint(x: 40, y: 130))
             path.addLine(to: CGPoint(x: imageSize.width - 40, y: 130))
@@ -897,7 +863,6 @@ class ProfileViewController: UIViewController {
             path.lineWidth = 1
             path.stroke()
             
-            // Add stats
             let score = (pointsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
             let friendCount = (friendsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
             
@@ -917,7 +882,6 @@ class ProfileViewController: UIViewController {
             
             statsAttributedText.draw(in: CGRect(x: 40, y: 150, width: imageSize.width - 80, height: 100))
             
-            // Add recent games if any
             if !recentGames.isEmpty {
                 let recentTitle = "Recent Activity"
                 let recentAttributes: [NSAttributedString.Key: Any] = [
@@ -926,7 +890,6 @@ class ProfileViewController: UIViewController {
                 ]
                 recentTitle.draw(at: CGPoint(x: 40, y: 260), withAttributes: recentAttributes)
                 
-                // Show up to 2 recent games
                 let gamesToShow = min(recentGames.count, 2)
                 for i in 0..<gamesToShow {
                     let game = recentGames[i]
