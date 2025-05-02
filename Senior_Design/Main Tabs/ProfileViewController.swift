@@ -251,34 +251,54 @@ class ProfileViewController: UIViewController {
     }
 
     private func updateFriendRequestBadge() {
+        // Create a custom button with badge
+        let buttonConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+        let envelopeImage = UIImage(systemName: "envelope", withConfiguration: buttonConfig)
+        
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
+        button.setImage(envelopeImage, for: .normal)
+        button.tintColor = accentColor
+        button.addTarget(self, action: #selector(handleViewFriendRequests), for: .touchUpInside)
+        
+        // Add or remove badge based on pending status
         if hasPendingRequests {
+            // Create badge indicator
+            let badgeSize: CGFloat = 12
+            let badge = UIView(frame: CGRect(x: 18, y: 0, width: badgeSize, height: badgeSize))
+            badge.backgroundColor = UIColor.red
+            badge.layer.cornerRadius = badgeSize / 2
+            
+            // Add white border to make it pop against any background
+            badge.layer.borderWidth = 1
+            badge.layer.borderColor = UIColor.white.cgColor
+            
+            // Optional: Add animation when badge appears
             if friendRequestBadge == nil {
-                let badgeSize: CGFloat = 10
-                
-                let badge = UIView(frame: CGRect(x: 0, y: 0, width: badgeSize, height: badgeSize))
-                badge.backgroundColor = UIColor.red
-                badge.layer.cornerRadius = badgeSize / 2
-                
-                let buttonView = friendRequestsButton.value(forKey: "view") as? UIView
-                
-                if let buttonView = buttonView {
-                    buttonView.addSubview(badge)
-                    
-                    badge.translatesAutoresizingMaskIntoConstraints = false
-                    NSLayoutConstraint.activate([
-                        badge.topAnchor.constraint(equalTo: buttonView.topAnchor, constant: 3),
-                        badge.trailingAnchor.constraint(equalTo: buttonView.trailingAnchor, constant: -3),
-                        badge.widthAnchor.constraint(equalToConstant: badgeSize),
-                        badge.heightAnchor.constraint(equalToConstant: badgeSize)
-                    ])
-                    
-                    friendRequestBadge = badge
-                }
+                badge.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: [], animations: {
+                    badge.transform = .identity
+                })
             }
+            
+            button.addSubview(badge)
+            friendRequestBadge = badge
         } else {
             friendRequestBadge?.removeFromSuperview()
             friendRequestBadge = nil
         }
+        
+        // Create bar button item with the custom button
+        let barButton = UIBarButtonItem(customView: button)
+        
+        // Update the navigation bar with the new items
+        if let settingsButton = navigationItem.rightBarButtonItems?.first {
+            navigationItem.rightBarButtonItems = [settingsButton, barButton]
+        } else {
+            navigationItem.rightBarButtonItems = [barButton]
+        }
+        
+        // Store reference to the new button
+        friendRequestsButton = barButton
     }
 
     private func updateUIWithUserData() {
@@ -803,8 +823,127 @@ class ProfileViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
-        let items = ["Check out my waste learning progress!"]
+        // Get user stats - FIX: Cast to UILabel before accessing text property
+        let score = (pointsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
+        let friendCount = (friendsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
+        let username = usernameLabel.text?.replacingOccurrences(of: "@", with: "") ?? "user"
+        
+        // Generate achievement message
+        let recentGamesCount = recentGames.count
+        let hasPlayedGames = recentGamesCount > 0
+        
+        // Create the sharing message
+        var shareText = "I've earned \(score) points in Literr-acy! "
+        
+        if hasPlayedGames {
+            shareText += "I've played \(recentGamesCount) games recently"
+            
+            // Add most recent game info if available
+            if let mostRecent = recentGames.first {
+                shareText += " and scored \(mostRecent.score) points in \(mostRecent.name)!"
+            } else {
+                shareText += "!"
+            }
+        } else {
+            shareText += "Join me to start your waste sorting journey!"
+        }
+        
+        // Add app link - replace with your actual App Store link when available
+        shareText += "\n\nDownload Litter-acy and add me as a friend: @\(username)"
+        
+        // Generate a shareable image representing user stats
+        let statsImage = generateShareableStatsImage()
+        
+        // Share both text and image
+        let items: [Any] = [shareText, statsImage]
         let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(activityController, animated: true)
+    }
+
+    // Generate a shareable image with user stats
+    private func generateShareableStatsImage() -> UIImage {
+        let imageSize = CGSize(width: 600, height: 400)
+        let renderer = UIGraphicsImageRenderer(size: imageSize)
+        
+        let image = renderer.image { context in
+            // Background
+            let rectangle = CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height)
+            context.cgContext.setFillColor(UIColor.white.cgColor)
+            context.cgContext.fill(rectangle)
+            
+            // Add app name/logo at top
+            let appName = "Litter-acy"
+            let headerAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 32, weight: .bold),
+                .foregroundColor: accentColor
+            ]
+            let headerSize = appName.size(withAttributes: headerAttributes)
+            appName.draw(at: CGPoint(x: (imageSize.width - headerSize.width) / 2, y: 30), 
+                        withAttributes: headerAttributes)
+            
+            // Add user name
+            let userName = nameLabel.text ?? "User"
+            let nameAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 28, weight: .medium),
+                .foregroundColor: UIColor.black
+            ]
+            userName.draw(at: CGPoint(x: 40, y: 90), withAttributes: nameAttributes)
+            
+            // Add horizontal line
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 40, y: 130))
+            path.addLine(to: CGPoint(x: imageSize.width - 40, y: 130))
+            UIColor.lightGray.setStroke()
+            path.lineWidth = 1
+            path.stroke()
+            
+            // Add stats
+            let score = (pointsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
+            let friendCount = (friendsContainer.subviews.first(where: { $0 is UILabel }) as? UILabel)?.text ?? "0"
+            
+            let statsText = "Score: \(score) points\nFriends: \(friendCount)"
+            let statsAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 24),
+                .foregroundColor: UIColor.darkGray
+            ]
+            
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.lineSpacing = 10
+            
+            let statsAttributedText = NSAttributedString(
+                string: statsText,
+                attributes: statsAttributes
+            )
+            
+            statsAttributedText.draw(in: CGRect(x: 40, y: 150, width: imageSize.width - 80, height: 100))
+            
+            // Add recent games if any
+            if !recentGames.isEmpty {
+                let recentTitle = "Recent Activity"
+                let recentAttributes: [NSAttributedString.Key: Any] = [
+                    .font: UIFont.systemFont(ofSize: 20, weight: .medium),
+                    .foregroundColor: UIColor.black
+                ]
+                recentTitle.draw(at: CGPoint(x: 40, y: 260), withAttributes: recentAttributes)
+                
+                // Show up to 2 recent games
+                let gamesToShow = min(recentGames.count, 2)
+                for i in 0..<gamesToShow {
+                    let game = recentGames[i]
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "MMM d, yyyy"
+                    
+                    let gameText = "• \(game.name) - \(game.score) points (\(dateFormatter.string(from: game.date)))"
+                    let gameAttributes: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.systemFont(ofSize: 18),
+                        .foregroundColor: UIColor.darkGray
+                    ]
+                    
+                    gameText.draw(at: CGPoint(x: 50, y: 300 + (i * 30)), withAttributes: gameAttributes)
+                }
+            }
+        }
+        
+        return image
     }
 }
