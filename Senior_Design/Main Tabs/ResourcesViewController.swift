@@ -34,25 +34,24 @@ class ResourcesViewController: UIViewController {
     
     // MARK: - Sample Data
     private let articles: [(topic: String, title: String, imageSystemName: String, content: String, link: String)] = [
-        ("One-Earth", "Green teens: Understanding and promoting adolescents’ sustainable engagement,", "arrow.3.trianglepath", "One Earth provides research-driven insights into how sustainable behaviors can be encouraged among adolescents by aligning environmental actions with their core personal motives, such as the desire for independence, social belonging, and personal identity. Rather than relying solely on traditional messages about responsibility or future consequences, this approach emphasizes making sustainability meaningful and rewarding in young people's daily lives. The resource offers evidence-based strategies for educators, program designers, and advocates who want to foster lasting environmental engagement by connecting with the values that matter most to teens. It serves as a valuable guide for developing initiatives, educational materials, and games that aim to inspire a genuine, lifelong commitment to protecting the planet.", "https://doi.org/10.1016/j.oneear.2023.02.006" ),
-        ("Waste Game", "Make Waste Fun Again! A Gamification Approach to Recycling", "leaf","Gamification strategies can significantly enhance recycling behavior by turning sustainable actions into engaging and rewarding experiences. By incorporating elements like feedback systems, achievements, point rewards, and social competition, recycling can be transformed from a routine task into a motivating and socially-driven activity. Focus group studies reveal that blending game mechanics with recycling initiatives helps bridge the gap between knowledge and action, making environmentally responsible behavior feel natural and satisfying. These findings offer valuable direction for anyone designing programs, educational materials, or interactive games that seek to build long-term commitment to sustainability through positive, playful reinforcement.", "https://doi.org/10.1007/978-3-030-53294-9_30"),
-        ("How To Teach", "How Education Can Be Leveraged to Foster Adolescents’ Nature Connection", "trash", "Integrating nature into educational settings can significantly enhance adolescents' connection to the environment. By incorporating outdoor learning experiences, educators can boost students' motivation, academic performance, and overall well-being. Exposure to natural environments during schooling not only supports cognitive development but also fosters a lasting commitment to environmental stewardship. This approach underscores the importance of accessible green spaces in educational contexts, aiming to promote sustainability and address health disparities among youth.", "https://doi.org/10.1007/978-3-031-29257-6_5"),
-        ("Practices", "Serious Practices for Interactive Waste Sorting Mini-game", "desktopcomputer", "Effective waste management is key to sustainable living, but many struggle with understanding waste classification. This study introduces a web-based serious game featuring interactive sorting quizzes created by users and AI to promote environmental sustainability. The game includes AI-generated feedback, a carbon credit system, and user-generated content to engage and educate players. Two user studies with 48 university students evaluated the game’s impact, showing it effectively enhanced understanding of sustainable waste management. The results demonstrate the potential of serious games to encourage environmental education and sustainable behaviors. By leveraging technology, such games can address environmental challenges and inspire sustainable practices.", "https://doi.org/10.1007/978-3-031-74138-8_11"),
-        ("Eco-Quest Example Game", "ECO-QUEST: An Educational Game Designed to Impart Knowledge About Ecological Practices and Selective Waste Management", "number.circle", "ECO-QUEST is an educational game designed to enhance environmental awareness by engaging players in selective waste collection and recycling practices. Developed using the Game Design Document (GDD) methodology and the Startup Business Model Canvas, the game offers both single-player and multiplayer modes. Players navigate through timed challenges, sorting various waste types into appropriate bins, thereby learning about proper waste disposal in an interactive setting. The game's structure promotes critical thinking and problem-solving skills, aiming to foster sustainable behaviors and integrate environmental education into school curricula effectively.", "https://doi.org/10.1007/978-981-99-8248-6_35"),
-        ("Gamification Influence", "Utilizing gamification to promote pro-sustainable behavior among information technology students", "fork.knife", "Gamification techniques in higher education offer a powerful way to inspire sustainable behavior by making environmental responsibility more engaging, competitive, and rewarding. Incorporating features like leaderboards, point systems, achievements, and interactive challenges into academic courses helps students connect with sustainability concepts on a deeper level while encouraging real-world application of eco-friendly habits. In this approach, students are not only learning about environmental issues but are actively motivated to take action, both within the classroom and in their daily lives. Gamified learning also fosters a sense of personal accountability, collaboration, and long-term commitment to environmental stewardship, demonstrating that educational environments can be a major force in shaping future sustainability leaders.", "https://doi.org/10.1007/s44217-024-00105-x"),
-        ("Literature Review", "Determinants of adolescents’ pro-sustainable behavior: a systematic literature review using PRISMA", "fork.knife", "Climate change is a critical global issue with adolescents being among the most affected. To encourage environmentally responsible behavior among them, it is essential to identify the key factors that influence such actions. The paper states that while research shows many factors affecting adolescents’ pro-environmental behavior, these factors do not have common themes, and no study has comprehensively reviewed the scattered research on this topic. These findings can guide future researchers in expanding studies to developing countries and using mixed methods. Policymakers can also use the results to inspire adolescents to take part in climate change mitigation.", "https://doi.org/10.1007/s43621-024-00291-6"),
-        ("Youth Attitudes", "Environmental Attitudes among Youth: How Much Do the Educational Characteristics of Parents and Young People Matter?", "fork.knife", "Motivation is a critical necessity for increasing and learning waste management techniques. This study provides insight on the growing phenomenon of education and its relation to environmental attitudes. This journal provides information regarding the importance of education from parents, students, and their surroundings. The journal reports the study of the importance of the environment to young students. Based on this study, they were able to determine how important education is to impacting the environment. This is important for our study, as motivation is a critical factor that will lead users to play our game. If there is a strict correlation of environmental importance to education from parents and their surroundings, then playing the game is also important for students to play.", "https://doi.org/10.3390/su151511921"),
-        ("WasteApp Example", "How to Encourage Recycling Behaviour? The Case of WasteApp: A Gamified Mobile Application", "fork.knife", "This journal provides insight on the importance of mobile game applications for waste management at tourist attractions. Gamification is shown to be beneficial for teaching about sustainability as representative from the app (WasteApp). This journal teaches about the potential mobile game applications have in terms of teaching about behavior and more importantly why users would even play the game. The journal provides data on why people would want to play the app including the idea that risks cause more people to stray away. In total, this article provides strong evidence about the importance of using mobile game applications to teach more about waste management.", "https://doi.org/10.3390/su10051544"),
-        ("Younger Vision on Sustainability", "Education for Sustainable Development: A Study in Adolescent Perception Changes Towards Sustainability Following a Strategic Planning-Based Intervention—The Young Persons’ Plan for the Planet Program", "fork.knife", "This journal talks about the United Nations SDGs which relate to waste management, and showed how young students could implement stem and research into sustainability. This article provides a sense of motivation for younger generations and that awareness and the need to take action is important to reduce problems like waste. This study provides data on how important it is to take action, and how this applies to waste management.", "https://doi.org/10.3390/su11205817")
+        ("One-Earth", "Green teens: Understanding and promoting adolescents’ sustainable engagement,", "globe", "One Earth provides research-driven insights into how sustainable behaviors can be encouraged among adolescents by aligning environmental actions with their core personal motives, such as the desire for independence, social belonging, and personal identity. Rather than relying solely on traditional messages about responsibility or future consequences, this approach emphasizes making sustainability meaningful and rewarding in young people's daily lives. The resource offers evidence-based strategies for educators, program designers, and advocates who want to foster lasting environmental engagement by connecting with the values that matter most to teens. It serves as a valuable guide for developing initiatives, educational materials, and games that aim to inspire a genuine, lifelong commitment to protecting the planet.", "https://doi.org/10.1016/j.oneear.2023.02.006" ),
+        ("Waste Game", "Make Waste Fun Again! A Gamification Approach to Recycling", "puzzlepiece","Gamification strategies can significantly enhance recycling behavior by turning sustainable actions into engaging and rewarding experiences. By incorporating elements like feedback systems, achievements, point rewards, and social competition, recycling can be transformed from a routine task into a motivating and socially-driven activity. Focus group studies reveal that blending game mechanics with recycling initiatives helps bridge the gap between knowledge and action, making environmentally responsible behavior feel natural and satisfying. These findings offer valuable direction for anyone designing programs, educational materials, or interactive games that seek to build long-term commitment to sustainability through positive, playful reinforcement.", "https://doi.org/10.1007/978-3-030-53294-9_30"),
+        ("How To Teach", "How Education Can Be Leveraged to Foster Adolescents’ Nature Connection", "person.crop.rectangle", "Integrating nature into educational settings can significantly enhance adolescents' connection to the environment. By incorporating outdoor learning experiences, educators can boost students' motivation, academic performance, and overall well-being. Exposure to natural environments during schooling not only supports cognitive development but also fosters a lasting commitment to environmental stewardship. This approach underscores the importance of accessible green spaces in educational contexts, aiming to promote sustainability and address health disparities among youth.", "https://doi.org/10.1007/978-3-031-29257-6_5"),
+        ("Practices", "Serious Practices for Interactive Waste Sorting Mini-game", "repeat", "Effective waste management is key to sustainable living, but many struggle with understanding waste classification. This study introduces a web-based serious game featuring interactive sorting quizzes created by users and AI to promote environmental sustainability. The game includes AI-generated feedback, a carbon credit system, and user-generated content to engage and educate players. Two user studies with 48 university students evaluated the game’s impact, showing it effectively enhanced understanding of sustainable waste management. The results demonstrate the potential of serious games to encourage environmental education and sustainable behaviors. By leveraging technology, such games can address environmental challenges and inspire sustainable practices.", "https://doi.org/10.1007/978-3-031-74138-8_11"),
+        ("Eco-Quest Example Game", "ECO-QUEST: An Educational Game Designed to Impart Knowledge About Ecological Practices and Selective Waste Management", "location.north.line", "ECO-QUEST is an educational game designed to enhance environmental awareness by engaging players in selective waste collection and recycling practices. Developed using the Game Design Document (GDD) methodology and the Startup Business Model Canvas, the game offers both single-player and multiplayer modes. Players navigate through timed challenges, sorting various waste types into appropriate bins, thereby learning about proper waste disposal in an interactive setting. The game's structure promotes critical thinking and problem-solving skills, aiming to foster sustainable behaviors and integrate environmental education into school curricula effectively.", "https://doi.org/10.1007/978-981-99-8248-6_35"),
+        ("Gamification Influence", "Utilizing gamification to promote pro-sustainable behavior among information technology students", "target", "Gamification techniques in higher education offer a powerful way to inspire sustainable behavior by making environmental responsibility more engaging, competitive, and rewarding. Incorporating features like leaderboards, point systems, achievements, and interactive challenges into academic courses helps students connect with sustainability concepts on a deeper level while encouraging real-world application of eco-friendly habits. In this approach, students are not only learning about environmental issues but are actively motivated to take action, both within the classroom and in their daily lives. Gamified learning also fosters a sense of personal accountability, collaboration, and long-term commitment to environmental stewardship, demonstrating that educational environments can be a major force in shaping future sustainability leaders.", "https://doi.org/10.1007/s44217-024-00105-x"),
+        ("Literature Review", "Determinants of adolescents’ pro-sustainable behavior: a systematic literature review using PRISMA", "text.book.closed", "Climate change is a critical global issue with adolescents being among the most affected. To encourage environmentally responsible behavior among them, it is essential to identify the key factors that influence such actions. The paper states that while research shows many factors affecting adolescents’ pro-environmental behavior, these factors do not have common themes, and no study has comprehensively reviewed the scattered research on this topic. These findings can guide future researchers in expanding studies to developing countries and using mixed methods. Policymakers can also use the results to inspire adolescents to take part in climate change mitigation.", "https://doi.org/10.1007/s43621-024-00291-6"),
+        ("Youth Attitudes", "Environmental Attitudes among Youth: How Much Do the Educational Characteristics of Parents and Young People Matter?", "person.crop.circle", "Motivation is a critical necessity for increasing and learning waste management techniques. This study provides insight on the growing phenomenon of education and its relation to environmental attitudes. This journal provides information regarding the importance of education from parents, students, and their surroundings. The journal reports the study of the importance of the environment to young students. Based on this study, they were able to determine how important education is to impacting the environment. This is important for our study, as motivation is a critical factor that will lead users to play our game. If there is a strict correlation of environmental importance to education from parents and their surroundings, then playing the game is also important for students to play.", "https://doi.org/10.3390/su151511921"),
+        ("WasteApp Example", "How to Encourage Recycling Behaviour? The Case of WasteApp: A Gamified Mobile Application", "app", "This journal provides insight on the importance of mobile game applications for waste management at tourist attractions. Gamification is shown to be beneficial for teaching about sustainability as representative from the app (WasteApp). This journal teaches about the potential mobile game applications have in terms of teaching about behavior and more importantly why users would even play the game. The journal provides data on why people would want to play the app including the idea that risks cause more people to stray away. In total, this article provides strong evidence about the importance of using mobile game applications to teach more about waste management.", "https://doi.org/10.3390/su10051544"),
+        ("Younger Vision on Sustainability", "Education for Sustainable Development: A Study in Adolescent Perception Changes Towards Sustainability Following a Strategic Planning-Based Intervention—The Young Persons’ Plan for the Planet Program", "leaf", "This journal talks about the United Nations SDGs which relate to waste management, and showed how young students could implement stem and research into sustainability. This article provides a sense of motivation for younger generations and that awareness and the need to take action is important to reduce problems like waste. This study provides data on how important it is to take action, and how this applies to waste management.", "https://doi.org/10.3390/su11205817")
     ]
     
     private let videos: [(topic: String, title: String, imageSystemName: String, link:String, content:String)] = [
-        ("Tutorial", "Recycling Process Explained", "arrow.triangle.2.circlepath", "https://www.youtube.com/watch?v=6jQ7y_qQYUA", "The video Recycling for Kids | Recycling Plastic, Glass and Paper | Recycling for Children teaches young children about the importance of recycling and how they can help protect the environment. Through friendly cartoon animations and simple language, it explains why recycling matters by highlighting how it saves resources, reduces waste, and helps keep the Earth clean. The video shows kids how to identify recyclable materials like plastic, glass, paper, and metal, and emphasizes the importance of sorting them correctly into the appropriate bins. It walks through the recycling process, from collection to creating new products, and encourages kids to practice recycling at home. Overall, the video delivers a positive and motivational message that even small actions, like recycling daily, can make a big difference for the planet.")
-//        ("DIY", "Upcycling Household Items", "hammer"),
-//        ("Documentary", "The Journey of Waste", "map"),
-//        ("Tutorial", "Home Composting System Setup", "house"),
-//        ("Interview", "Waste Management Professionals", "person.2"),
-//        ("Case Study", "Zero Waste Communities", "building.2")
+        ("Teaching Students", "Recycling Process Explained", "book", "https://www.youtube.com/watch?v=6jQ7y_qQYUA", "The video Recycling for Kids | Recycling Plastic, Glass and Paper | Recycling for Children teaches young children about the importance of recycling and how they can help protect the environment. Through friendly cartoon animations and simple language, it explains why recycling matters by highlighting how it saves resources, reduces waste, and helps keep the Earth clean. The video shows kids how to identify recyclable materials like plastic, glass, paper, and metal, and emphasizes the importance of sorting them correctly into the appropriate bins. It walks through the recycling process, from collection to creating new products, and encourages kids to practice recycling at home. Overall, the video delivers a positive and motivational message that even small actions, like recycling daily, can make a big difference for the planet."),
+        ("The Three R's", "The three Rs: Reduce, Reuse, and Recycle | Happy Learning", "leaf", "https://www.youtube.com/watch?v=OasbYWF4_S8", "Join Happy Learning in this fun and educational video designed to teach kids the importance of taking care of the environment through the simple yet powerful principles of reducing waste, reusing items, and recycling materials. In this catchy and vibrant song, children are introduced to the core concepts of sustainability in an easy-to-understand way.Through engaging visuals and a memorable melody, the video helps kids grasp how they can make a big difference in protecting the planet, starting with small, everyday actions. From reducing waste by making mindful choices to reusing objects and recycling materials properly, this video covers all the essential steps to help create a cleaner, greener world for future generations.Perfect for young learners, this video encourages kids to take part in eco-friendly habits that can have a lasting impact on the environment. Whether you're teaching at home, in the classroom, or looking to introduce your child to sustainability in a fun and interactive way, this video provides a perfect introduction to environmental responsibility."),
+        ("Methods", "4 Ways of Waste Management", "minus.circle", "https://www.youtube.com/watch?v=HgEo7YnvJs0", "The YouTube video titled 4 Ways of Waste Management provides an educational overview of four primary waste management strategies: source reduction, recycling, composting, and landfilling. It emphasizes the importance of minimizing waste at its origin through source reduction, which involves designing products and processes to reduce the amount and toxicity of waste generated. Recycling is highlighted as a method to convert waste materials into new products, thereby conserving resources and reducing environmental impact. Composting is presented as a natural process of decomposing organic waste, such as food scraps and yard waste, into nutrient-rich soil amendments. Lastly, landfilling is discussed as the disposal of waste in designated land areas, with considerations for environmental protection measures. The video underscores the significance of these methods in promoting sustainable waste management practices and encourages viewers to adopt behaviors that contribute to environmental conservation.​"),
+        ("Waste Management", "What is Waste Management?", "trash.circle", "https://www.youtube.com/watch?v=K6ppCC3lboU", "This educational video introduces young viewers to the basics of recycling, focusing on materials such as plastic, glass, and paper. It explains the significance of the recycling symbol and encourages children to participate in recycling efforts to help protect the environment. The content is designed to be engaging and informative, making it suitable for a young audience to understand the importance of waste management and environmental conservation.")
+
     ]
     
     // MARK: - Lifecycle Methods
@@ -653,7 +652,7 @@ class ModernVideoDetailViewController: UIViewController {
         
         relatedVideosLabel.font = UIFont(name: "Sen-Regular", size: 20)
         relatedVideosLabel.textColor = .black
-        relatedVideosLabel.text = "Related Videos"
+//        relatedVideosLabel.text = "Related Videos"
         contentView.addSubview(relatedVideosLabel)
         
         relatedVideosStackView.axis = .vertical
@@ -661,7 +660,7 @@ class ModernVideoDetailViewController: UIViewController {
         relatedVideosStackView.distribution = .fillEqually
         contentView.addSubview(relatedVideosStackView)
         
-        addRelatedVideos()
+//        addRelatedVideos()
     }
     
     private func setupConstraints() {
@@ -729,66 +728,66 @@ class ModernVideoDetailViewController: UIViewController {
         descriptionLabel.text = videoContent
     }
     
-    private func addRelatedVideos() {
-        let relatedVideoTitles = [
-            "Waste Sorting Best Practices",
-            "Home Composting Guide",
-            "Upcycling Household Items"
-        ]
-        
-        for title in relatedVideoTitles {
-            let videoCard = createRelatedVideoCard(title: title)
-            relatedVideosStackView.addArrangedSubview(videoCard)
-        }
-    }
+//    private func addRelatedVideos() {
+//        let relatedVideoTitles = [
+//            "Waste Sorting Best Practices",
+//            "Home Composting Guide",
+//            "Upcycling Household Items"
+//        ]
+//        
+//        for title in relatedVideoTitles {
+//            let videoCard = createRelatedVideoCard(title: title)
+//            relatedVideosStackView.addArrangedSubview(videoCard)
+//        }
+//    }
     
-    private func createRelatedVideoCard(title: String) -> UIView {
-        let card = UIView()
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 12
-        card.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
-        card.layer.shadowOffset = CGSize(width: 0, height: 2)
-        card.layer.shadowRadius = 6
-        card.layer.shadowOpacity = 1
-        card.translatesAutoresizingMaskIntoConstraints = false
-        card.heightAnchor.constraint(equalToConstant: 70).isActive = true
-        
-        let thumbnailView = UIView()
-        thumbnailView.backgroundColor = UIColor.lightGray
-        thumbnailView.layer.cornerRadius = 8
-        thumbnailView.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(thumbnailView)
-        
-        let playIcon = UIImageView(image: UIImage(systemName: "play.fill"))
-        playIcon.tintColor = .white
-        playIcon.contentMode = .scaleAspectFit
-        playIcon.translatesAutoresizingMaskIntoConstraints = false
-        thumbnailView.addSubview(playIcon)
-        
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = UIFont(name: "Sen-Regular", size: 16)
-        titleLabel.textColor = .black
-        titleLabel.numberOfLines = 2
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            thumbnailView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            thumbnailView.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            thumbnailView.widthAnchor.constraint(equalToConstant: 90),
-            thumbnailView.heightAnchor.constraint(equalToConstant: 50),
-            
-            playIcon.centerXAnchor.constraint(equalTo: thumbnailView.centerXAnchor),
-            playIcon.centerYAnchor.constraint(equalTo: thumbnailView.centerYAnchor),
-            playIcon.widthAnchor.constraint(equalToConstant: 16),
-            playIcon.heightAnchor.constraint(equalToConstant: 16),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: thumbnailView.trailingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            titleLabel.centerYAnchor.constraint(equalTo: card.centerYAnchor)
-        ])
-        
-        return card
-    }
+//    private func createRelatedVideoCard(title: String) -> UIView {
+//        let card = UIView()
+//        card.backgroundColor = .white
+//        card.layer.cornerRadius = 12
+//        card.layer.shadowColor = UIColor.black.withAlphaComponent(0.05).cgColor
+//        card.layer.shadowOffset = CGSize(width: 0, height: 2)
+//        card.layer.shadowRadius = 6
+//        card.layer.shadowOpacity = 1
+//        card.translatesAutoresizingMaskIntoConstraints = false
+//        card.heightAnchor.constraint(equalToConstant: 70).isActive = true
+//        
+//        let thumbnailView = UIView()
+//        thumbnailView.backgroundColor = UIColor.lightGray
+//        thumbnailView.layer.cornerRadius = 8
+//        thumbnailView.translatesAutoresizingMaskIntoConstraints = false
+//        card.addSubview(thumbnailView)
+//        
+//        let playIcon = UIImageView(image: UIImage(systemName: "play.fill"))
+//        playIcon.tintColor = .white
+//        playIcon.contentMode = .scaleAspectFit
+//        playIcon.translatesAutoresizingMaskIntoConstraints = false
+//        thumbnailView.addSubview(playIcon)
+//        
+//        let titleLabel = UILabel()
+//        titleLabel.text = title
+//        titleLabel.font = UIFont(name: "Sen-Regular", size: 16)
+//        titleLabel.textColor = .black
+//        titleLabel.numberOfLines = 2
+//        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+//        card.addSubview(titleLabel)
+//        
+//        NSLayoutConstraint.activate([
+//            thumbnailView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+//            thumbnailView.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+//            thumbnailView.widthAnchor.constraint(equalToConstant: 90),
+//            thumbnailView.heightAnchor.constraint(equalToConstant: 50),
+//            
+//            playIcon.centerXAnchor.constraint(equalTo: thumbnailView.centerXAnchor),
+//            playIcon.centerYAnchor.constraint(equalTo: thumbnailView.centerYAnchor),
+//            playIcon.widthAnchor.constraint(equalToConstant: 16),
+//            playIcon.heightAnchor.constraint(equalToConstant: 16),
+//            
+//            titleLabel.leadingAnchor.constraint(equalTo: thumbnailView.trailingAnchor, constant: 12),
+//            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+//            titleLabel.centerYAnchor.constraint(equalTo: card.centerYAnchor)
+//        ])
+//        
+//        return card
+//    }
 }
