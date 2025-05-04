@@ -23,6 +23,8 @@
 		D071BEE32CC5D27000D7D9B1 /* ConnectionsGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D071BEE22CC5D27000D7D9B1 /* ConnectionsGameViewController.swift */; };
 		D071BEE82CC5D27100D7D9B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */; };
 		D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */; };
+		D071C0F02DC6BC10007762EE /* Sen-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D071C0EF2DC6BC0F007762EE /* Sen-Bold.ttf */; };
+		D071C0F22DC6C152007762EE /* GameHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D071C0F12DC6C152007762EE /* GameHistoryViewController.swift */; };
 		D0B7D0262D2CAEB200D77310 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0252D2CAEB200D77310 /* FirebaseAnalytics */; };
 		D0B7D0282D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0272D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion */; };
 		D0B7D02A2D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0292D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport */; };
@@ -77,6 +79,8 @@
 		D071BEE72CC5D27100D7D9B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D071BEEA2CC5D27100D7D9B1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D071BEEC2CC5D27100D7D9B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D071C0EF2DC6BC0F007762EE /* Sen-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sen-Bold.ttf"; sourceTree = "<group>"; };
+		D071C0F12DC6C152007762EE /* GameHistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryViewController.swift; sourceTree = "<group>"; };
 		D0C8A2AC2D9913AD00590C51 /* Senior_Design.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Senior_Design.entitlements; sourceTree = "<group>"; };
 		D0C8A2AD2D9B351B00590C51 /* WasteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WasteData.swift; sourceTree = "<group>"; };
 		D0CB12482DA5AF0900CBE83A /* SignUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewController.swift; sourceTree = "<group>"; };
@@ -194,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				D0CB124C2DA5B6DE00CBE83A /* UserSearchViewController.swift */,
+				D071C0F12DC6C152007762EE /* GameHistoryViewController.swift */,
 				D0CB124E2DA5B78700CBE83A /* FriendRequestsViewController.swift */,
 				D0CB125C2DB1BC4900CBE83A /* FriendsListViewController.swift */,
 			);
@@ -213,6 +218,7 @@
 			isa = PBXGroup;
 			children = (
 				D01F0F022D7B81F00089688C /* Sen-VariableFont_wght.ttf */,
+				D071C0EF2DC6BC0F007762EE /* Sen-Bold.ttf */,
 				D01F0F042D7B830F0089688C /* Sen-Regular.ttf */,
 			);
 			path = Fonts;
@@ -330,6 +336,7 @@
 				D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */,
 				D01F0F032D7B81F00089688C /* Sen-VariableFont_wght.ttf in Resources */,
 				D071BEE82CC5D27100D7D9B1 /* Assets.xcassets in Resources */,
+				D071C0F02DC6BC10007762EE /* Sen-Bold.ttf in Resources */,
 				490D23C62DADC6510027A080 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -341,6 +348,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D071C0F22DC6C152007762EE /* GameHistoryViewController.swift in Sources */,
 				D0CB124F2DA5B78700CBE83A /* FriendRequestsViewController.swift in Sources */,
 				D02D58802D4254FC0006E688 /* QuizGameViewController.swift in Sources */,
 				D071BEE32CC5D27000D7D9B1 /* ConnectionsGameViewController.swift in Sources */,
@@ -515,7 +523,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wastemanagement.senior.design;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -544,7 +552,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wastemanagement.senior.design;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
