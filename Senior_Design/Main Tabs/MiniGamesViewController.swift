@@ -13,6 +13,7 @@ class MiniGamesViewController: UIViewController {
         static let iconSize: CGFloat = 60
         static let buttonHeight: CGFloat = 40
         static let buttonWidth: CGFloat = 100
+        static let modalCornerRadius: CGFloat = 20
     }
     
     // MARK: - Types
@@ -54,6 +55,9 @@ class MiniGamesViewController: UIViewController {
     private let contentView = UIView()
     private let stackView = UIStackView()
     private var gameCards: [UIView] = []
+    private let helpButton = UIButton(type: .system)
+    private var modalView: UIView?
+    private var modalOverlay: UIView?
     
     // MARK: - Lifecycle
     
@@ -88,6 +92,7 @@ class MiniGamesViewController: UIViewController {
         setupHeaderLabels()
         setupScrollView()
         setupGameCards()
+        setupHelpButton()
     }
     
     private func setupGradientBackground() {
@@ -157,6 +162,23 @@ class MiniGamesViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
+        ])
+    }
+
+    private func setupHelpButton() {
+        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        helpButton.setImage(UIImage(systemName: "questionmark.circle.fill", withConfiguration: configuration), for: .normal)
+        helpButton.tintColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
+        helpButton.translatesAutoresizingMaskIntoConstraints = false
+        helpButton.addTarget(self, action: #selector(helpButtonTapped), for: .touchUpInside)
+        
+        view.addSubview(helpButton)
+        
+        NSLayoutConstraint.activate([
+            helpButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            helpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.contentPadding),
+            helpButton.widthAnchor.constraint(equalToConstant: 44),
+            helpButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
     
@@ -345,33 +367,157 @@ class MiniGamesViewController: UIViewController {
             }
         }
     }
+
+    @objc private func helpButtonTapped() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        UIView.animate(withDuration: 0.1, animations: {
+            self.helpButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        }) { _ in
+            UIView.animate(withDuration: 0.1, animations: {
+                self.helpButton.transform = .identity
+            }) { _ in
+                self.showHelpModal()
+            }
+        }
+    }
+    
+    private func showHelpModal() {
+        let overlay = UIView(frame: view.bounds)
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        overlay.alpha = 0
+        view.addSubview(overlay)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissHelpModal))
+        overlay.addGestureRecognizer(tapGesture)
+        
+        let modal = UIView()
+        modal.backgroundColor = .white
+        modal.layer.cornerRadius = Constants.modalCornerRadius
+        modal.translatesAutoresizingMaskIntoConstraints = false
+        modal.clipsToBounds = true
+        modal.layer.masksToBounds = false
+        modal.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        modal.layer.shadowOffset = CGSize(width: 0, height: 10)
+        modal.layer.shadowRadius = 20
+        modal.layer.shadowOpacity = 1
+        view.addSubview(modal)
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "How to Play"
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 24) ?? UIFont.systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = UIColor(red: 44/255, green: 44/255, blue: 44/255, alpha: 1.0)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        modal.addSubview(titleLabel)
+        
+        let closeButton = UIButton(type: .system)
+        let closeConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        closeButton.setImage(UIImage(systemName: "xmark.circle.fill", withConfiguration: closeConfig), for: .normal)
+        closeButton.tintColor = UIColor(red: 150/255, green: 150/255, blue: 150/255, alpha: 1.0)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.addTarget(self, action: #selector(dismissHelpModal), for: .touchUpInside)
+        modal.addSubview(closeButton)
+        
+        let contentText = UITextView()
+        contentText.isEditable = false
+        contentText.isSelectable = true
+        contentText.isScrollEnabled = true
+        contentText.showsVerticalScrollIndicator = true
+        contentText.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
+        contentText.textColor = UIColor(red: 70/255, green: 70/255, blue: 70/255, alpha: 1.0)
+        contentText.text = """
+        Welcome to the Mini Games section of our Sustainability App!
+        
+        Here you can play educational games to learn about proper waste sorting and environmental sustainability in a fun, interactive way.
+        
+        Available Games:
+        
+        • Connections: Group items into the correct waste categories (Recycle, Compost, Landfill, and Hazardous).
+        
+        • Recycle Catcher: Use the basket to catch falling recyclables and properly sort them.
+        
+        • Trivia: Test your knowledge about sustainability and waste management through multiple-choice questions.
+        
+        Playing these games will help you learn proper waste disposal methods while earning points for your profile.
+        
+        """
+        contentText.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        contentText.translatesAutoresizingMaskIntoConstraints = false
+        modal.addSubview(contentText)
+        
+        NSLayoutConstraint.activate([
+            modal.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            modal.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            modal.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            modal.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            modal.heightAnchor.constraint(equalToConstant: view.bounds.height * 0.6),
+            
+            titleLabel.topAnchor.constraint(equalTo: modal.topAnchor, constant: 24),
+            titleLabel.leadingAnchor.constraint(equalTo: modal.leadingAnchor, constant: 24),
+            
+            closeButton.topAnchor.constraint(equalTo: modal.topAnchor, constant: 24),
+            closeButton.trailingAnchor.constraint(equalTo: modal.trailingAnchor, constant: -24),
+            closeButton.widthAnchor.constraint(equalToConstant: 30),
+            closeButton.heightAnchor.constraint(equalToConstant: 30),
+            
+            contentText.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            contentText.leadingAnchor.constraint(equalTo: modal.leadingAnchor, constant: 24),
+            contentText.trailingAnchor.constraint(equalTo: modal.trailingAnchor, constant: -24),
+            contentText.bottomAnchor.constraint(equalTo: modal.bottomAnchor, constant: -24)
+        ])
+        
+        self.modalView = modal
+        self.modalOverlay = overlay
+        
+        modal.transform = CGAffineTransform(translationX: 0, y: view.bounds.height)
+        
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
+            modal.transform = .identity
+            overlay.alpha = 1
+        })
+    }
+    
+    @objc private func dismissHelpModal() {
+        guard let modalView = modalView, let overlay = modalOverlay else { return }
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            modalView.transform = CGAffineTransform(translationX: 0, y: self.view.bounds.height)
+            overlay.alpha = 0
+        }) { _ in
+            modalView.removeFromSuperview()
+            overlay.removeFromSuperview()
+            self.modalView = nil
+            self.modalOverlay = nil
+        }
+    }
     
     @objc private func gameButtonTapped(_ sender: UIButton) {
-    sender.isUserInteractionEnabled = false
-    
-    let generator = UIImpactFeedbackGenerator(style: .medium)
-    generator.impactOccurred()
-    
-    UIView.animateKeyframes(withDuration: 0.5, delay: 0, options: [], animations: {
-        UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2) {
-            sender.transform = CGAffineTransform(scaleX: 0.9, y: 0.9).rotated(by: 0.03)
-            sender.alpha = 0.8
-        }
+        sender.isUserInteractionEnabled = false
         
-        UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.2) {
-            sender.transform = CGAffineTransform(scaleX: 1.1, y: 1.1).rotated(by: -0.02)
-            sender.alpha = 1.0
-        }
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
         
-        UIView.addKeyframe(withRelativeStartTime: 0.4, relativeDuration: 0.1) {
-            sender.transform = .identity
+        UIView.animateKeyframes(withDuration: 0.5, delay: 0, options: [], animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2) {
+                sender.transform = CGAffineTransform(scaleX: 0.9, y: 0.9).rotated(by: 0.03)
+                sender.alpha = 0.8
+            }
+            
+            UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.2) {
+                sender.transform = CGAffineTransform(scaleX: 1.1, y: 1.1).rotated(by: -0.02)
+                sender.alpha = 1.0
+            }
+            
+            UIView.addKeyframe(withRelativeStartTime: 0.4, relativeDuration: 0.1) {
+                sender.transform = .identity
+            }
+        }) { _ in
+            self.openGame(at: sender.tag)
+            
+            sender.isUserInteractionEnabled = true
         }
-    }) { _ in
-        self.openGame(at: sender.tag)
-        
-        sender.isUserInteractionEnabled = true
     }
-}
     
     private func openGame(at index: Int) {
         switch index {
