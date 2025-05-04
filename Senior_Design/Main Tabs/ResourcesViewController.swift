@@ -791,3 +791,4 @@ class ModernVideoDetailViewController: UIViewController {
         
         return card
     }
+}
