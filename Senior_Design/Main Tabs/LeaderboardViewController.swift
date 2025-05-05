@@ -43,7 +43,7 @@ class LeaderboardViewController: UIViewController {
         view.addSubview(headerView)
         
         titleLabel.text = "Leaderboard"
-        titleLabel.font = UIFont(name: "Sen-Regular", size: 24)!
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 28)!
         titleLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
@@ -51,7 +51,7 @@ class LeaderboardViewController: UIViewController {
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         segmentedControl.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
-        segmentedControl.selectedSegmentTintColor = UIColor(red: 141/255, green: 212/255, blue: 109/255, alpha: 1)
+        segmentedControl.selectedSegmentTintColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
         
         let normalAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.black,
