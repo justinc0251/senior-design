@@ -78,7 +78,7 @@ class ResourcesViewController: UIViewController {
         view.addSubview(headerView)
         
         titleLabel.text = "Learning Resources"
-        titleLabel.font = UIFont(name: "Sen-Regular", size: 28)
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 28)
         titleLabel.textColor = .black
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
