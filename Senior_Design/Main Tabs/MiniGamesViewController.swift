@@ -36,7 +36,7 @@ class MiniGamesViewController: UIViewController {
             accentColor: UIColor(red: 87/255, green: 155/255, blue: 252/255, alpha: 1.0)
         ),
         GameInfo(
-            title: "Recycle Catcher", 
+            title: "Recycle Catcher",
             iconName: "arrow.3.trianglepath",
             description: "Catch falling recyclables and sort them into bins.",
             accentColor: UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
@@ -513,10 +513,123 @@ class MiniGamesViewController: UIViewController {
                 sender.transform = .identity
             }
         }) { _ in
-            self.openGame(at: sender.tag)
+            if AuthManager.shared.isGuest {
+                self.showLoginRequiredModal()
+            } else {
+                self.openGame(at: sender.tag)
+            }
             
             sender.isUserInteractionEnabled = true
         }
+    }
+
+    private func showLoginRequiredModal() {
+        let overlay = UIView(frame: view.bounds)
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        overlay.alpha = 0
+        view.addSubview(overlay)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissLoginModal))
+        overlay.addGestureRecognizer(tapGesture)
+        
+        let modal = UIView()
+        modal.backgroundColor = .white
+        modal.layer.cornerRadius = Constants.modalCornerRadius
+        modal.translatesAutoresizingMaskIntoConstraints = false
+        modal.clipsToBounds = true
+        modal.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
+        modal.layer.shadowOffset = CGSize(width: 0, height: 10)
+        modal.layer.shadowRadius = 20
+        modal.layer.shadowOpacity = 1
+        view.addSubview(modal)
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "Sign In Required"
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 24) ?? UIFont.systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = UIColor(red: 44/255, green: 44/255, blue: 44/255, alpha: 1.0)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        modal.addSubview(titleLabel)
+        
+        
+        let messageLabel = UILabel()
+        messageLabel.text = "Please sign in or create an account to play games and track your progress."
+        messageLabel.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
+        messageLabel.textColor = UIColor(red: 70/255, green: 70/255, blue: 70/255, alpha: 1.0)
+        messageLabel.numberOfLines = 0
+        messageLabel.textAlignment = .center
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        modal.addSubview(messageLabel)
+        
+        let signInButton = UIButton(type: .system)
+        signInButton.setTitle("Sign In", for: .normal)
+        signInButton.backgroundColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
+        signInButton.setTitleColor(.white, for: .normal)
+        signInButton.titleLabel?.font = UIFont(name: "Sen-Bold", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .bold)
+        signInButton.layer.cornerRadius = 16
+        signInButton.translatesAutoresizingMaskIntoConstraints = false
+        signInButton.addTarget(self, action: #selector(navigateToLogin), for: .touchUpInside)
+        modal.addSubview(signInButton)
+        
+        let cancelButton = UIButton(type: .system)
+        cancelButton.setTitle("Continue as Guest", for: .normal)
+        cancelButton.setTitleColor(UIColor(red: 100/255, green: 100/255, blue: 100/255, alpha: 1.0), for: .normal)
+        cancelButton.titleLabel?.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.addTarget(self, action: #selector(dismissLoginModal), for: .touchUpInside)
+        modal.addSubview(cancelButton)
+        
+        NSLayoutConstraint.activate([
+            modal.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            modal.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            modal.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
+            modal.heightAnchor.constraint(equalToConstant: 280),
+            
+            titleLabel.topAnchor.constraint(equalTo: modal.topAnchor, constant: 24),
+            titleLabel.centerXAnchor.constraint(equalTo: modal.centerXAnchor),
+            
+            
+            messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            messageLabel.leadingAnchor.constraint(equalTo: modal.leadingAnchor, constant: 24),
+            messageLabel.trailingAnchor.constraint(equalTo: modal.trailingAnchor, constant: -24),
+            
+            signInButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 30),
+            signInButton.centerXAnchor.constraint(equalTo: modal.centerXAnchor),
+            signInButton.leadingAnchor.constraint(equalTo: modal.leadingAnchor, constant: 24),
+            signInButton.trailingAnchor.constraint(equalTo: modal.trailingAnchor, constant: -24),
+            signInButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            cancelButton.topAnchor.constraint(equalTo: signInButton.bottomAnchor, constant: 16),
+            cancelButton.centerXAnchor.constraint(equalTo: modal.centerXAnchor)
+        ])
+        
+        self.modalView = modal
+        self.modalOverlay = overlay
+        
+        modal.transform = CGAffineTransform(translationX: 0, y: view.bounds.height)
+        
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
+            modal.transform = .identity
+            overlay.alpha = 1
+        })
+    }
+
+    @objc private func dismissLoginModal() {
+        guard let modalView = modalView, let overlay = modalOverlay else { return }
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            modalView.transform = CGAffineTransform(translationX: 0, y: self.view.bounds.height)
+            overlay.alpha = 0
+        }) { _ in
+            modalView.removeFromSuperview()
+            overlay.removeFromSuperview()
+            self.modalView = nil
+            self.modalOverlay = nil
+        }
+    }
+
+    @objc private func navigateToLogin() {
+        dismissLoginModal()
+        (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.navigateToLogin()
     }
     
     private func openGame(at index: Int) {
