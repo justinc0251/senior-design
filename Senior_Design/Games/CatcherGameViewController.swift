@@ -142,6 +142,7 @@ class CatcherGameViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = Theme.backgroundColor
         setupGameContainer()
+        tabBarController?.tabBar.isHidden = true
         navigationItem.title = ""
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.tintColor = Theme.accentColor
@@ -173,6 +174,24 @@ class CatcherGameViewController: UIViewController {
             }
         }
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tabBarController?.tabBar.isHidden = false
+        stopGame()
+    }
+    
+    private func stopGame() {
+        gameTimer?.invalidate()
+        itemTimer?.invalidate()
+        gameTimeTimer?.invalidate()
+
+        for item in fallingItems {
+            item.removeFromSuperview()
+        }
+        fallingItems.removeAll()
+    }
+
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -460,9 +479,26 @@ class CatcherGameViewController: UIViewController {
                 fallingItems.remove(at: index)
             }
             else if item.frame.origin.y > view.frame.height {
+                // If item is recyclable (tag == 1), subtract a point
+                if item.tag == 1 {
+                    score -= 1
+                    showPointsInBin(points: -1)
+                    let generator = UIImpactFeedbackGenerator(style: .heavy)
+                    generator.impactOccurred()
+                    
+                    UIView.animate(withDuration: 0.3, animations: {
+                        self.scoreLabel.textColor = Theme.incorrectColor
+                    }) { _ in
+                        UIView.animate(withDuration: 0.3) {
+                            self.scoreLabel.textColor = Theme.primaryText
+                        }
+                    }
+                }
+
                 item.removeFromSuperview()
                 fallingItems.remove(at: index)
             }
+
         }
     }
     
@@ -651,7 +687,7 @@ class CatcherGameViewController: UIViewController {
             helpContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             helpContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             helpContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
-            helpContainerView.heightAnchor.constraint(equalToConstant: 420) 
+            helpContainerView.heightAnchor.constraint(equalToConstant: 460) 
         ])
         
         let helpIcon = UIImageView()
@@ -671,7 +707,7 @@ class CatcherGameViewController: UIViewController {
         
         let instructionsLabel = UILabel()
         instructionsLabel.translatesAutoresizingMaskIntoConstraints = false
-        instructionsLabel.text = "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Reach 10 points to win\n• You have 60 seconds"
+        instructionsLabel.text = "Catch the recycling items with your bin to score points!\n\n• Drag the bin left and right to catch items\n• Recycling items: +1 point\n• Other waste items: -1 point\n• Missing recycling items: -1 point\n• Reach 10 points to win\n• You have 60 seconds"
         instructionsLabel.font = UIFont(name: "Sen-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16)
         instructionsLabel.textColor = Theme.secondaryText
         instructionsLabel.textAlignment = .left
