@@ -70,6 +70,7 @@ class LoginViewController: UIViewController {
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
         textField.textColor = .black
+        textField.setLeftPaddingPoints(16)
         textField.keyboardType = .emailAddress
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
@@ -87,6 +88,9 @@ class LoginViewController: UIViewController {
     private let passwordTextField: UITextField = {
         let textField = UITextField()
         textField.isSecureTextEntry = true
+        textField.autocapitalizationType = .none
+        textField.autocorrectionType = .no
+        textField.setLeftPaddingPoints(16)
         textField.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
         textField.layer.cornerRadius = 12
         textField.textColor = .black
