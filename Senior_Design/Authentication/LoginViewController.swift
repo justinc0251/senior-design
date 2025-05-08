@@ -647,13 +647,15 @@ class LoginViewController: UIViewController {
     private func saveUserData(firebaseUser: User, user: GIDGoogleUser) {
         let db = Firestore.firestore()
         let userDoc = db.collection("users").document(firebaseUser.uid)
-        
+
         userDoc.getDocument { [weak self] document, error in
+            guard let self = self else { return }
+
             if let error = error {
-                self?.showAlert(title: "Error", message: "Failed to retrieve user data: \(error.localizedDescription)")
+                self.showAlert(title: "Error", message: "Failed to retrieve user data: \(error.localizedDescription)")
                 return
             }
-            
+
             var userData: [String: Any] = [
                 "uid": firebaseUser.uid,
                 "name": user.profile?.name ?? "Anonymous",
@@ -718,65 +720,6 @@ class LoginViewController: UIViewController {
         }
     }
 
-
-    private func saveAppleUserData(firebaseUser: User, name: String?, email: String?) {
-            
-            // Add username if none exists
-            if document?.data()?["username"] == nil {
-                userData["username"] = self?.generateUsername(from: user.profile?.name ?? "Anonymous") ?? "user123"
-            }
-
-            // Assign profileColor if it doesn't exist
-            if document?.data()?["profileColor"] == nil {
-                let email = user.profile?.email ?? ""
-                let color = self?.colorForUser(email: email)
-                let colorHex = color?.toHex() ?? "#4CBB7B"
-                userData["profileColor"] = colorHex
-            }
-            
-            // Initialize followers and following arrays if they don't exist
-            if let document = document, document.exists {
-                let existingData = document.data() ?? [:]
-
-                if let existingScore = existingData["score"] as? Int {
-                    userData["score"] = existingScore
-                } else {
-                    userData["score"] = 0
-                }
-
-                if let followers = existingData["followers"] as? [String] {
-                    userData["followers"] = followers
-                } else {
-                    userData["followers"] = []
-                }
-
-                if let following = existingData["following"] as? [String] {
-                    userData["following"] = following
-                } else {
-                    userData["following"] = []
-                }
-            } else {
-                // New user - set defaults
-                userData["score"] = 0
-                userData["followers"] = []
-                userData["following"] = []
-                userData["createdAt"] = FieldValue.serverTimestamp()
-            }
-
-            UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
-            
-            userDoc.setData(userData, merge: true) { [weak self] error in
-                if let error = error {
-                    self?.showAlert(title: "Error", message: "Failed to save user data: \(error.localizedDescription)")
-                    return
-                }
-                
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                self?.transitionToMainApp()
-            }
-        }
-    }
-
     
     // Update the saveAppleUserData method with better name handling
     private func saveAppleUserData(firebaseUser: User,
@@ -785,70 +728,59 @@ class LoginViewController: UIViewController {
         let db = Firestore.firestore()
         let ref = db.collection("users").document(firebaseUser.uid)
 
-        // Check for existing user data first
-        ref.getDocument { [weak self] snapshot, _ in
+        ref.getDocument { [weak self] snapshot, error in
             guard let self = self else { return }
-            
+
+            if let error = error {
+                self.showAlert(title: "Error", message: "Failed to check existing user data: \(error.localizedDescription)")
+                return
+            }
+
             let resolvedName: String
             if let provided = name, !provided.trimmingCharacters(in: .whitespaces).isEmpty {
-                resolvedName = provided                    // brand‑new name from Apple
-                UserDefaults.standard.set(provided,
-                                        forKey: "apple_user_name_\(firebaseUser.uid)")
-            } else if let cached = UserDefaults.standard
-                        .string(forKey: "apple_user_name_\(firebaseUser.uid)") {
-                resolvedName = cached                      // previously cached name
+                resolvedName = provided
+                UserDefaults.standard.set(provided, forKey: "apple_user_name_\(firebaseUser.uid)")
+            } else if let cached = UserDefaults.standard.string(forKey: "apple_user_name_\(firebaseUser.uid)"), !cached.isEmpty {
+                resolvedName = cached
             } else {
-                resolvedName = "Apple User"                // final fallback
+                 resolvedName = snapshot?.data()?["name"] as? String ?? "Apple User"
             }
 
-            // ── Build the payload ───────────────────────────────────────────────
-            var data: [String: Any] = [
-                "uid"      : firebaseUser.uid,
-                "provider" : "apple",
-                "name"     : resolvedName,
-                "username" : self.generateUsername(from: resolvedName),
-                "email"    : email ?? firebaseUser.email ?? "",
-                "createdAt": FieldValue.serverTimestamp()
+
+            var userData: [String: Any] = [
+                "uid": firebaseUser.uid,
+                "provider": "apple",
+                "name": resolvedName,
+                "email": email ?? firebaseUser.email ?? snapshot?.data()?["email"] as? String ?? ""
             ]
-            
-            // Preserve existing score if it exists
-            if let existingData = snapshot?.data(), 
-            let existingScore = existingData["score"] as? Int {
-                data["score"] = existingScore
-            } else {
-                data["score"] = 0
-            }
-            
-            // Set followers and following arrays
-            if let existingData = snapshot?.data(),
-            let followers = existingData["followers"] as? [String] {
-                data["followers"] = followers
-            } else {
-                data["followers"] = []
-            }
-            
-            if let existingData = snapshot?.data(),
-            let following = existingData["following"] as? [String] {
-                data["following"] = following
-            } else {
-                data["following"] = []
-            }
 
-            // merge keeps any other fields you're storing
-            ref.setData(data, merge: true) { [weak self] error in
-                // Remove loading indicator if present
-                if let activityIndicator = self?.view.subviews.first(where: { $0 is UIActivityIndicatorView }) as? UIActivityIndicatorView {
-                    activityIndicator.removeFromSuperview()
+            if let document = snapshot, document.exists {
+                 let existingData = document.data() ?? [:]
+
+                 userData["score"] = existingData["score"] ?? 0
+                 userData["followers"] = existingData["followers"] ?? []
+                 userData["following"] = existingData["following"] ?? []
+
+                 if let existingUsername = existingData["username"] as? String, !existingUsername.isEmpty {
+                      userData["username"] = existingUsername
+                 } else {
+                      userData["username"] = self.generateUsername(from: resolvedName)
+                 }
+
+                ref.setData(userData, merge: true) { error in
+                    self.handleFirestoreSaveCompletion(error: error, firebaseUser: firebaseUser)
                 }
-                self?.view.isUserInteractionEnabled = true
-                
-                guard error == nil else {
-                    print("Error saving Apple user: \(error!.localizedDescription)")
-                    return
+
+            } else {
+                userData["score"] = 0
+                userData["followers"] = []
+                userData["following"] = []
+                userData["username"] = self.generateUsername(from: resolvedName)
+                userData["createdAt"] = FieldValue.serverTimestamp()
+
+                ref.setData(userData) { error in
+                    self.handleFirestoreSaveCompletion(error: error, firebaseUser: firebaseUser)
                 }
-                UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                self?.transitionToMainApp()
             }
         }
     }
