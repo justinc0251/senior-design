@@ -218,32 +218,19 @@ class ProfileViewController: UIViewController {
     }
 
     private func checkPendingFriendRequests() {
-         guard AuthManager.shared.isLoggedIn, let userId = AuthManager.shared.currentUserId else {
-             self.hasPendingRequests = false
-             self.updateFriendRequestBadge()
-             print("ProfileVC: Not logged in, skipping friend request check.")
-             return
-         }
-        print("ProfileVC: Checking pending friend requests for \(userId)")
+        guard let userId = currentUserId else { return }
 
         let db = Firestore.firestore()
         db.collection("friendRequests")
             .whereField("toUserId", isEqualTo: userId)
             .whereField("status", isEqualTo: "pending")
-            .limit(to: 1)
-            .getDocuments { [weak self] snapshot, error in
+            .getDocuments(source: .server) { [weak self] snapshot, error in
                 guard let self = self else { return }
 
-                if let error = error {
-                    print("Error checking pending friend requests: \(error.localizedDescription)")
-                    self.hasPendingRequests = false
-                } else {
-                    let hasPending = (snapshot?.documents.count ?? 0) > 0
-                     print("ProfileVC: Pending requests found: \(hasPending)")
-                    self.hasPendingRequests = hasPending
-                }
+                let hasPending = (snapshot?.documents.count ?? 0) > 0
 
                 DispatchQueue.main.async {
+                    self.hasPendingRequests = hasPending
                     self.updateFriendRequestBadge()
                 }
             }
