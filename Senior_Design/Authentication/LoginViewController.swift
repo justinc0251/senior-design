@@ -660,7 +660,6 @@ class LoginViewController: UIViewController {
                 "uid": firebaseUser.uid,
                 "name": user.profile?.name ?? "Anonymous",
                 "email": user.profile?.email ?? "",
-                "photoURL": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? "",
                 "provider": "google"
             ]
             
@@ -721,10 +720,7 @@ class LoginViewController: UIViewController {
     }
 
     
-    // Update the saveAppleUserData method with better name handling
-    private func saveAppleUserData(firebaseUser: User,
-                                name: String?,
-                                email: String?) {
+    private func saveAppleUserData(firebaseUser: User, name: String?, email: String?) {
         let db = Firestore.firestore()
         let ref = db.collection("users").document(firebaseUser.uid)
 
