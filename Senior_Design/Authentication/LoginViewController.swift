@@ -664,14 +664,14 @@ class LoginViewController: UIViewController {
             
             // Add username if none exists
             if document?.data()?["username"] == nil {
-                userData["username"] = self?.generateUsername(from: user.profile?.name ?? "Anonymous") ?? "user123"
+                userData["username"] = self.generateUsername(from: user.profile?.name ?? "Anonymous") ?? "user123"
             }
 
             // Assign profileColor if it doesn't exist
             if document?.data()?["profileColor"] == nil {
                 let email = user.profile?.email ?? ""
-                let color = self?.colorForUser(email: email)
-                let colorHex = color?.toHex() ?? "#4CBB7B"
+                let color = self.colorForUser(email: email)
+                let colorHex = color.toHex() ?? "#4CBB7B"
                 userData["profileColor"] = colorHex
             }
             

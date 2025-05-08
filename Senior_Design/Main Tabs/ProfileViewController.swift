@@ -73,6 +73,7 @@ class ProfileViewController: UIViewController {
             print("User is Logged In.")
             configureUIForLoggedInUser()
             fetchUserData()
+            fetchAndApplyProfileColor()
             fetchRecentGames()
             checkPendingFriendRequests()
 
@@ -106,8 +107,6 @@ class ProfileViewController: UIViewController {
         addFriendsButton.isHidden = false
         shareButton.isHidden = false
         activityContainerView.isHidden = false
-
-        profileImageView.backgroundColor = accentColor
 
         setupNavigationBarItems()
 
@@ -183,23 +182,40 @@ class ProfileViewController: UIViewController {
     }
     
     private func fetchAndApplyProfileColor() {
-            guard let uid = Auth.auth().currentUser?.uid else { return }
+        guard let uid = Auth.auth().currentUser?.uid else {
+            DispatchQueue.main.async {
+                self.profileImageView.backgroundColor = self.accentColor
+            }
+            return
+        }
 
-            let db = Firestore.firestore()
-            db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
-                guard let self = self,
-                      let data = snapshot?.data(),
-                      let hex = data["profileColor"] as? String,
-                      let color = UIColor.fromHex(hex) else {
-                    print("Failed to retrieve profileColor")
-                    return
-                }
+        let db = Firestore.firestore()
+        db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
 
+            if let error = error {
+                print("Error fetching profileColor: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    self.profileImageView.backgroundColor = color
+                    self.profileImageView.backgroundColor = self.accentColor 
                 }
+                return
+            }
+
+            guard let data = snapshot?.data(),
+                  let hex = data["profileColor"] as? String,
+                  let color = UIColor.fromHex(hex) else {
+                print("Failed to retrieve or parse profileColor, using accentColor as fallback.")
+                DispatchQueue.main.async {
+                    self.profileImageView.backgroundColor = self.accentColor
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.profileImageView.backgroundColor = color
             }
         }
+    }
 
     private func checkPendingFriendRequests() {
         guard let userId = currentUserId else { return }
@@ -508,7 +524,6 @@ class ProfileViewController: UIViewController {
         profileImageView.contentMode = .scaleAspectFill
         profileImageView.tintColor = .white
         profileImageView.clipsToBounds = true
-        profileImageView.backgroundColor = accentColor
         profileImageView.layer.cornerRadius = 40
         profileImageView.layer.borderWidth = 3
         profileImageView.layer.borderColor = UIColor.white.cgColor
