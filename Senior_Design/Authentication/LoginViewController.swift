@@ -625,7 +625,25 @@ class LoginViewController: UIViewController {
             }
         }
     }
+    
+    private func colorForUser(email: String) -> UIColor {
+        let colors: [UIColor] = [
+            UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0),
+            UIColor(red: 231/255, green: 76/255, blue: 60/255, alpha: 1.0),
+            UIColor(red: 241/255, green: 196/255, blue: 15/255, alpha: 1.0),
+            UIColor(red: 52/255, green: 152/255, blue: 219/255, alpha: 1.0),
+            UIColor(red: 155/255, green: 89/255, blue: 182/255, alpha: 1.0),
+            UIColor(red: 230/255, green: 126/255, blue: 34/255, alpha: 1.0),
+            UIColor(red: 46/255, green: 204/255, blue: 113/255, alpha: 1.0),
+            UIColor(red: 26/255, green: 188/255, blue: 156/255, alpha: 1.0)
+        ]
 
+        let hash = email.unicodeScalars.map { $0.value }.reduce(0, +)
+        let index = Int(hash) % colors.count
+        return colors[index]
+    }
+
+    // Update the saveUserData method for Google Sign-In
     private func saveUserData(firebaseUser: User, user: GIDGoogleUser) {
         let db = Firestore.firestore()
         let userDoc = db.collection("users").document(firebaseUser.uid)
@@ -645,61 +663,68 @@ class LoginViewController: UIViewController {
                 "photoURL": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? "",
                 "provider": "google"
             ]
+            
+            // Add username if none exists
+            if document?.data()?["username"] == nil {
+                userData["username"] = self.generateUsername(from: user.profile?.name ?? "Anonymous") ?? "user123"
+            }
 
-             if let document = document, document.exists {
-                 let existingData = document.data() ?? [:]
+            // Assign profileColor if it doesn't exist
+            if document?.data()?["profileColor"] == nil {
+                let email = user.profile?.email ?? ""
+                let color = self.colorForUser(email: email)
+                let colorHex = color.toHex() ?? "#4CBB7B"
+                userData["profileColor"] = colorHex
+            }
+            
+            // Initialize followers and following arrays if they don't exist
+            if let document = document, document.exists {
+                let existingData = document.data() ?? [:]
 
-                 if let existingScore = existingData["score"] as? Int {
-                     userData["score"] = existingScore
-                 } else {
-                     userData["score"] = 0
-                 }
+                if let existingScore = existingData["score"] as? Int {
+                    userData["score"] = existingScore
+                } else {
+                    userData["score"] = 0
+                }
 
-                 userData["followers"] = existingData["followers"] ?? []
-                 userData["following"] = existingData["following"] ?? []
+                if let followers = existingData["followers"] as? [String] {
+                    userData["followers"] = followers
+                } else {
+                    userData["followers"] = []
+                }
 
-                 if let existingUsername = existingData["username"] as? String, !existingUsername.isEmpty {
-                     userData["username"] = existingUsername
-                 } else {
-                     userData["username"] = self.generateUsername(from: user.profile?.name ?? "Anonymous")
-                 }
+                if let following = existingData["following"] as? [String] {
+                    userData["following"] = following
+                } else {
+                    userData["following"] = []
+                }
+            } else {
+                // New user - set defaults
+                userData["score"] = 0
+                userData["followers"] = []
+                userData["following"] = []
+                userData["createdAt"] = FieldValue.serverTimestamp()
+            }
 
-                 userDoc.setData(userData, merge: true) { error in
-                     if let error = error {
-                         self.showAlert(title: "Error", message: "Failed to update user data: \(error.localizedDescription)")
-                         return
-                     }
-                     print("User data updated successfully.")
-                     AuthManager.shared.currentUserId = firebaseUser.uid
-                     AuthManager.shared.isLoggedIn = true
-                     AuthManager.shared.isGuest = false
-                     self.transitionToMainApp()
-                 }
-
-             } else {
-                 userData["score"] = 0
-                 userData["followers"] = []
-                 userData["following"] = []
-                 userData["username"] = self.generateUsername(from: user.profile?.name ?? "Anonymous")
-                 userData["createdAt"] = FieldValue.serverTimestamp()
-
-                 userDoc.setData(userData) { error in
-                     if let error = error {
-                         self.showAlert(title: "Error", message: "Failed to save new user data: \(error.localizedDescription)")
-                         return
-                     }
-                     print("New user data saved successfully.")
-                     AuthManager.shared.currentUserId = firebaseUser.uid
-                     AuthManager.shared.isLoggedIn = true
-                     AuthManager.shared.isGuest = false
-                     self.transitionToMainApp()
-                 }
-             }
+            UserDefaults.standard.set(firebaseUser.uid, forKey: "currentUserId")
+            
+            userDoc.setData(userData, merge: true) { [weak self] error in
+                if let error = error {
+                    self?.showAlert(title: "Error", message: "Failed to save user data: \(error.localizedDescription)")
+                    return
+                }
+                
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                self?.transitionToMainApp()
+            }
         }
     }
 
-
-    private func saveAppleUserData(firebaseUser: User, name: String?, email: String?) {
+    
+    // Update the saveAppleUserData method with better name handling
+    private func saveAppleUserData(firebaseUser: User,
+                                name: String?,
+                                email: String?) {
         let db = Firestore.firestore()
         let ref = db.collection("users").document(firebaseUser.uid)
 
