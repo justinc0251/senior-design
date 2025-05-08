@@ -25,6 +25,7 @@
 		D071BEEB2CC5D27100D7D9B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D071BEE92CC5D27100D7D9B1 /* LaunchScreen.storyboard */; };
 		D071C0F02DC6BC10007762EE /* Sen-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D071C0EF2DC6BC0F007762EE /* Sen-Bold.ttf */; };
 		D071C0F22DC6C152007762EE /* GameHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D071C0F12DC6C152007762EE /* GameHistoryViewController.swift */; };
+		D071C0F42DC95DB8007762EE /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D071C0F32DC95DB8007762EE /* AuthManager.swift */; };
 		D0B7D0262D2CAEB200D77310 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0252D2CAEB200D77310 /* FirebaseAnalytics */; };
 		D0B7D0282D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0272D2CAEB200D77310 /* FirebaseAnalyticsOnDeviceConversion */; };
 		D0B7D02A2D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = D0B7D0292D2CAEB200D77310 /* FirebaseAnalyticsWithoutAdIdSupport */; };
@@ -81,6 +82,7 @@
 		D071BEEC2CC5D27100D7D9B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D071C0EF2DC6BC0F007762EE /* Sen-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Sen-Bold.ttf"; sourceTree = "<group>"; };
 		D071C0F12DC6C152007762EE /* GameHistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHistoryViewController.swift; sourceTree = "<group>"; };
+		D071C0F32DC95DB8007762EE /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		D0C8A2AC2D9913AD00590C51 /* Senior_Design.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Senior_Design.entitlements; sourceTree = "<group>"; };
 		D0C8A2AD2D9B351B00590C51 /* WasteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WasteData.swift; sourceTree = "<group>"; };
 		D0CB12482DA5AF0900CBE83A /* SignUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewController.swift; sourceTree = "<group>"; };
@@ -210,6 +212,7 @@
 			children = (
 				D0C8A2AD2D9B351B00590C51 /* WasteData.swift */,
 				D0CB12502DA7882F00CBE83A /* GameHistoryManager.swift */,
+				D071C0F32DC95DB8007762EE /* AuthManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -357,6 +360,7 @@
 				D024AF5F2D267F9B00D37210 /* OnboardingViewController.swift in Sources */,
 				D0CB124D2DA5B6DE00CBE83A /* UserSearchViewController.swift in Sources */,
 				D06042FC2D3B269F00494D80 /* ResourcesViewController.swift in Sources */,
+				D071C0F42DC95DB8007762EE /* AuthManager.swift in Sources */,
 				D0CB12512DA7882F00CBE83A /* GameHistoryManager.swift in Sources */,
 				D024AF612D267FFE00D37210 /* LoginViewController.swift in Sources */,
 				D06042F82D3B202000494D80 /* LeaderboardViewController.swift in Sources */,
@@ -510,7 +514,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Senior_Design/Senior_Design.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.4;
 				DEVELOPMENT_TEAM = ZTGY33D692;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Senior_Design/Info.plist;
@@ -523,12 +527,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wastemanagement.senior.design;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -539,7 +547,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Senior_Design/Senior_Design.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.4;
 				DEVELOPMENT_TEAM = ZTGY33D692;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Senior_Design/Info.plist;
@@ -552,12 +560,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wastemanagement.senior.design;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
