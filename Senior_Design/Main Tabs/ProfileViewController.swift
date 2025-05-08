@@ -184,7 +184,7 @@ class ProfileViewController: UIViewController {
     private func fetchAndApplyProfileColor() {
         guard let uid = Auth.auth().currentUser?.uid else {
             DispatchQueue.main.async {
-                self.profileImageView.backgroundColor = self.accentColor
+                self.profileImageView.backgroundColor = self.accentColor // Fallback for no UID
             }
             return
         }
@@ -196,7 +196,7 @@ class ProfileViewController: UIViewController {
             if let error = error {
                 print("Error fetching profileColor: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    self.profileImageView.backgroundColor = self.accentColor 
+                    self.profileImageView.backgroundColor = self.accentColor // Fallback on error
                 }
                 return
             }
@@ -206,7 +206,7 @@ class ProfileViewController: UIViewController {
                   let color = UIColor.fromHex(hex) else {
                 print("Failed to retrieve or parse profileColor, using accentColor as fallback.")
                 DispatchQueue.main.async {
-                    self.profileImageView.backgroundColor = self.accentColor
+                    self.profileImageView.backgroundColor = self.accentColor // Fallback if color not found or invalid
                 }
                 return
             }
@@ -218,7 +218,13 @@ class ProfileViewController: UIViewController {
     }
 
     private func checkPendingFriendRequests() {
-        guard let userId = currentUserId else { return }
+         guard AuthManager.shared.isLoggedIn, let userId = AuthManager.shared.currentUserId else {
+             self.hasPendingRequests = false
+             self.updateFriendRequestBadge()
+             print("ProfileVC: Not logged in, skipping friend request check.")
+             return
+         }
+        print("ProfileVC: Checking pending friend requests for \(userId)")
 
         let db = Firestore.firestore()
         db.collection("friendRequests")
@@ -227,10 +233,16 @@ class ProfileViewController: UIViewController {
             .getDocuments(source: .server) { [weak self] snapshot, error in
                 guard let self = self else { return }
 
-                let hasPending = (snapshot?.documents.count ?? 0) > 0
+                if let error = error {
+                    print("Error checking pending friend requests: \(error.localizedDescription)")
+                    self.hasPendingRequests = false
+                } else {
+                    let hasPending = (snapshot?.documents.count ?? 0) > 0
+                     print("ProfileVC: Pending requests found: \(hasPending)")
+                    self.hasPendingRequests = hasPending
+                }
 
                 DispatchQueue.main.async {
-                    self.hasPendingRequests = hasPending
                     self.updateFriendRequestBadge()
                 }
             }
