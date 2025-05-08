@@ -2,6 +2,19 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
+public extension UIColor {
+    static func fromHex(_ hex: String) -> UIColor? {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
+        var rgb: UInt64 = 0
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
+
+        let red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgb & 0x0000FF) / 255.0
+        return UIColor(red: red, green: green, blue: blue, alpha: 1.0)
+    }
+}
+
 class ProfileViewController: UIViewController {
 
     // MARK: - Properties
@@ -168,34 +181,40 @@ class ProfileViewController: UIViewController {
                 }
             }
     }
+    
+    private func fetchAndApplyProfileColor() {
+            guard let uid = Auth.auth().currentUser?.uid else { return }
+
+            let db = Firestore.firestore()
+            db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
+                guard let self = self,
+                      let data = snapshot?.data(),
+                      let hex = data["profileColor"] as? String,
+                      let color = UIColor.fromHex(hex) else {
+                    print("Failed to retrieve profileColor")
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    self.profileImageView.backgroundColor = color
+                }
+            }
+        }
 
     private func checkPendingFriendRequests() {
-         guard AuthManager.shared.isLoggedIn, let userId = AuthManager.shared.currentUserId else {
-             self.hasPendingRequests = false
-             self.updateFriendRequestBadge()
-             print("ProfileVC: Not logged in, skipping friend request check.")
-             return
-         }
-        print("ProfileVC: Checking pending friend requests for \(userId)")
+        guard let userId = currentUserId else { return }
 
         let db = Firestore.firestore()
         db.collection("friendRequests")
             .whereField("toUserId", isEqualTo: userId)
             .whereField("status", isEqualTo: "pending")
-            .limit(to: 1)
-            .getDocuments { [weak self] snapshot, error in
+            .getDocuments(source: .server) { [weak self] snapshot, error in
                 guard let self = self else { return }
 
-                if let error = error {
-                    print("Error checking pending friend requests: \(error.localizedDescription)")
-                    self.hasPendingRequests = false
-                } else {
-                    let hasPending = (snapshot?.documents.count ?? 0) > 0
-                     print("ProfileVC: Pending requests found: \(hasPending)")
-                    self.hasPendingRequests = hasPending
-                }
+                let hasPending = (snapshot?.documents.count ?? 0) > 0
 
                 DispatchQueue.main.async {
+                    self.hasPendingRequests = hasPending
                     self.updateFriendRequestBadge()
                 }
             }
@@ -379,23 +398,50 @@ class ProfileViewController: UIViewController {
     }
 
     private func updateFriendRequestBadge() {
-        guard AuthManager.shared.isLoggedIn else {
-             friendRequestBadge?.removeFromSuperview()
-             friendRequestBadge = nil
-              if let button = friendRequestsButton?.customView as? UIButton {
-                  button.subviews.forEach { if $0.backgroundColor == .red { $0.removeFromSuperview() } }
-              }
-            return
+        if !hasPendingRequests {
+            friendRequestBadge?.removeFromSuperview()
+            friendRequestBadge = nil
+        }
+        let buttonConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+        let envelopeImage = UIImage(systemName: "envelope", withConfiguration: buttonConfig)
+
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
+        button.setImage(envelopeImage, for: .normal)
+        button.tintColor = accentColor
+        button.addTarget(self, action: #selector(handleViewFriendRequests), for: .touchUpInside)
+
+        if hasPendingRequests {
+            let badgeSize: CGFloat = 12
+            let badge = UIView(frame: CGRect(x: 18, y: 0, width: badgeSize, height: badgeSize))
+            badge.backgroundColor = UIColor.red
+            badge.layer.cornerRadius = badgeSize / 2
+
+            badge.layer.borderWidth = 1
+            badge.layer.borderColor = UIColor.white.cgColor
+
+            if friendRequestBadge == nil {
+                badge.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: [], animations: {
+                    badge.transform = .identity
+                })
+            }
+
+            button.addSubview(badge)
+            friendRequestBadge = badge
+        } else {
+            friendRequestBadge?.removeFromSuperview()
+            friendRequestBadge = nil
         }
 
-        guard let button = friendRequestsButton?.customView as? UIButton else {
-            print("Warning: friendRequestsButton customView is not setup correctly.")
-            setupNavigationBarItems()
-            guard let newButton = friendRequestsButton?.customView as? UIButton else { return }
-            configureBadge(on: newButton)
-            return
+        let barButton = UIBarButtonItem(customView: button)
+
+        if let settingsButton = navigationItem.rightBarButtonItems?.first {
+            navigationItem.rightBarButtonItems = [settingsButton, barButton]
+        } else {
+            navigationItem.rightBarButtonItems = [barButton]
         }
-         configureBadge(on: button)
+
+        friendRequestsButton = barButton
     }
 
      private func configureBadge(on button: UIButton) {
@@ -457,7 +503,6 @@ class ProfileViewController: UIViewController {
         navigationController?.navigationBar.tintColor = accentColor
     }
 
-    // MARK: - Profile Header Setup
     private func setupProfileHeader() {
         profileImageView = UIImageView()
         profileImageView.contentMode = .scaleAspectFill

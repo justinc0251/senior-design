@@ -3,6 +3,42 @@ import Firebase
 import FirebaseAuth
 import FirebaseFirestore
 
+extension UIColor {
+    func toHex() -> String? {
+        guard let components = cgColor.components, components.count >= 3 else {
+            return nil
+        }
+        
+        let r = Float(components[0])
+        let g = Float(components[1])
+        let b = Float(components[2])
+        
+        return String(
+            format: "#%02lX%02lX%02lX",
+            lroundf(r * 255),
+            lroundf(g * 255),
+            lroundf(b * 255)
+        )
+    }
+    
+    convenience init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+        
+        var rgb: UInt64 = 0
+        
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else {
+            return nil
+        }
+        
+        let red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgb & 0x0000FF) / 255.0
+        
+        self.init(red: red, green: green, blue: blue, alpha: 1.0)
+    }
+}
+
 class SignUpViewController: UIViewController {
     
     // MARK: - Theme Colors
@@ -354,15 +390,48 @@ class SignUpViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    private func colorForUser(email: String) -> UIColor {
+            let colors: [UIColor] = [
+                UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0),  // accent color
+                UIColor(red: 231/255, green: 76/255, blue: 60/255, alpha: 1.0),    // bright red
+                UIColor(red: 241/255, green: 196/255, blue: 15/255, alpha: 1.0),  // bright yellow
+                UIColor(red: 52/255, green: 152/255, blue: 219/255, alpha: 1.0),   // blue
+                UIColor(red: 155/255, green: 89/255, blue: 182/255, alpha: 1.0),   // purple
+                UIColor(red: 230/255, green: 126/255, blue: 34/255, alpha: 1.0),    // orange
+                UIColor(red: 46/255, green: 204/255, blue: 113/255, alpha: 1.0),   // emerald green
+                UIColor(red: 26/255, green: 188/255, blue: 156/255, alpha: 1.0),   // teal
+                UIColor(red: 142/255, green: 68/255, blue: 173/255, alpha: 1.0),   // deep purple
+                UIColor(red: 41/255, green: 128/255, blue: 185/255, alpha: 1.0),    // deep blue
+                UIColor(red: 39/255, green: 174/255, blue: 96/255, alpha: 1.0),   // deep green
+                UIColor(red: 211/255, green: 84/255, blue: 0/255, alpha: 1.0),      // deep orange
+                UIColor(red: 243/255, green: 156/255, blue: 18/255, alpha: 1.0),    // bright orange
+                UIColor(red: 192/255, green: 57/255, blue: 43/255, alpha: 1.0),   // deep red
+                UIColor(red: 44/255, green: 62/255, blue: 80/255, alpha: 1.0),      // dark blue
+                UIColor(red: 93/255, green: 173/255, blue: 226/255, alpha: 1.0),    // light blue
+                UIColor(red: 214/255, green: 48/255, blue: 49/255, alpha: 1.0),    // dark red
+                UIColor(red: 255/255, green: 195/255, blue: 18/255, alpha: 1.0),    // bright yellow
+                UIColor(red: 196/255, green: 229/255, blue: 56/255, alpha: 1.0),    // lime green
+                UIColor(red: 18/255, green: 203/255, blue: 196/255, alpha: 1.0),    // turquoise
+                UIColor(red: 253/255, green: 121/255, blue: 168/255, alpha: 1.0)     // pink
+            ]
+            
+            let hash = email.unicodeScalars.map { $0.value }.reduce(0, +)
+            let index = Int(hash) % colors.count
+            return colors[index]
+        }
+    
     private func saveUserDataToFirestore(user: User, name: String) {
         let db = Firestore.firestore()
         let username = generateUsername(from: name)
+        let userColor = colorForUser(email: user.email ?? "")
+        guard let colorHex = userColor.toHex() else { return }
         
         let userData: [String: Any] = [
             "uid": user.uid,
             "name": name,
             "username": username,
             "email": user.email ?? "",
+            "profileColor": colorHex,
             "provider": "email",
             "score": 0,
             "followers": [],
@@ -378,11 +447,9 @@ class SignUpViewController: UIViewController {
                 return
             }
             
-            // Save user ID to UserDefaults
             UserDefaults.standard.set(user.uid, forKey: "currentUserId")
             UserDefaults.standard.set(true, forKey: "isLoggedIn")
             
-            // Navigate to main app
             self.transitionToMainApp()
         }
     }

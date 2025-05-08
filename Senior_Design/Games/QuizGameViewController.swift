@@ -208,12 +208,38 @@ class QuizGameViewController: UIViewController {
         initializeImageQueue()
         loadQuestion()
         
+        tabBarController?.tabBar.isHidden = true
+        
         navigationItem.title = ""
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.tintColor = Theme.accentColor
         headerView.backgroundColor = .clear
         headerView.layer.shadowOpacity = 0
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tabBarController?.tabBar.isHidden = false
+        stopGame()
+    }
+    
+    private func stopGame() {
+        // Clear current state
+        selectedOption = nil
+        isAnswered = false
+        imageQueue.removeAll()
+        currentIndex = 0
+        currentImage = nil
+        currentScore = 0
+        
+        // Remove dynamically added result views or overlays if needed
+        for subview in view.subviews {
+            if subview.tag == 999 || String(describing: subview).contains("resultsContainer") {
+                subview.removeFromSuperview()
+            }
+        }
+    }
+
     
     // MARK: - UI Setup
     
