@@ -3,70 +3,91 @@ import FirebaseFirestore
 import FirebaseAuth
 
 class LeaderboardViewController: UIViewController {
-    
+
     // MARK: - Properties
-    
-    private var scores: [(name: String, score: Int)] = []
+
+    private var globalScores: [(userId: String, name: String, score: Int)] = []
+    private var friendsScores: [(userId: String, name: String, score: Int)] = []
+    private var globalCurrentUserRank: Int?
+    private var globalCurrentUserScoreData: (userId: String, name: String, score: Int)?
+
+    private var displayedScores: [(userId: String, name: String, score: Int)] = []
+    private var displayedCurrentUserRank: Int?
+    private var displayedCurrentUserScoreData: (userId: String, name: String, score: Int)?
+
     private var timeFrame: TimeFrame = .global
-    
+    private var isFetchingData = false
+    private var hasFetchedDataThisSession = false
+
     enum TimeFrame {
         case friends
         case global
     }
-    
+
     // MARK: - UI Components
-    
+
     private let headerView = UIView()
     private let titleLabel = UILabel()
     private let segmentedControl = UISegmentedControl(items: ["Global", "Friends"])
     private let tableView = UITableView()
     private let emptyStateLabel = UILabel()
-    
+    private let activityIndicator = UIActivityIndicatorView(style: .large)
+
     // MARK: - Lifecycle Methods
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
         setupUI()
         setupConstraints()
         setupEmptyStateLabel()
+        setupActivityIndicator()
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        fetchLeaderboardData()
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if !hasFetchedDataThisSession {
+            fetchAllLeaderboardData()
+        } else {
+             updateTableViewDisplay()
+        }
     }
-    
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        hasFetchedDataThisSession = false
+    }
+
+
     // MARK: - UI Setup
-    
     private func setupUI() {
         view.addSubview(headerView)
-        
+
         titleLabel.text = "Leaderboard"
-        titleLabel.font = UIFont(name: "Sen-Bold", size: 28)!
+        titleLabel.font = UIFont(name: "Sen-Bold", size: 32)!
         titleLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
         titleLabel.textAlignment = .center
         headerView.addSubview(titleLabel)
-        
+
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         segmentedControl.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
         segmentedControl.selectedSegmentTintColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
-        
+
         let normalAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.black,
             .font: UIFont(name: "Sen-Regular", size: 18)!
         ]
         segmentedControl.setTitleTextAttributes(normalAttributes, for: .normal)
-        
+
         let selectedAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white,
             .font: UIFont(name: "Sen-Regular", size: 18)!
         ]
         segmentedControl.setTitleTextAttributes(selectedAttributes, for: .selected)
-        
+
         view.addSubview(segmentedControl)
-        
+
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(LeaderboardCell.self, forCellReuseIdentifier: "LeaderboardCell")
@@ -75,17 +96,17 @@ class LeaderboardViewController: UIViewController {
         tableView.showsVerticalScrollIndicator = false
         view.addSubview(tableView)
     }
-    
+
     private func setupEmptyStateLabel() {
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateLabel.text = "No friends found. Add friends to see their scores here!"
+        emptyStateLabel.text = "No data available."
         emptyStateLabel.font = UIFont(name: "Sen-Regular", size: 16)
         emptyStateLabel.textColor = .gray
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = 0
         emptyStateLabel.isHidden = true
         view.addSubview(emptyStateLabel)
-        
+
         NSLayoutConstraint.activate([
             emptyStateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyStateLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -93,198 +114,318 @@ class LeaderboardViewController: UIViewController {
             emptyStateLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40)
         ])
     }
-    
+
+    private func setupActivityIndicator() {
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
+        view.addSubview(activityIndicator)
+        view.bringSubviewToFront(activityIndicator)
+
+        NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
     // MARK: - Constraints Setup
-    
+
     private func setupConstraints() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             headerView.heightAnchor.constraint(equalToConstant: 60),
-            
+
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            
+
             segmentedControl.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 20),
             segmentedControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             segmentedControl.widthAnchor.constraint(equalToConstant: 240),
             segmentedControl.heightAnchor.constraint(equalToConstant: 44),
-            
+
             tableView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
-    
+
+
     // MARK: - Actions
-    
+
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
         timeFrame = sender.selectedSegmentIndex == 0 ? .global : .friends
-        fetchLeaderboardData()
+        updateTableViewDisplay()
     }
-    
-    // MARK: - Data Fetching
-    
-    private func fetchLeaderboardData() {
+
+    // MARK: - Data Fetching and Display Logic
+
+    private func fetchAllLeaderboardData() {
+        guard !isFetchingData else { return }
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            handleLoggedOutState()
+            return
+        }
+
+        isFetchingData = true
+        DispatchQueue.main.async {
+            self.tableView.isHidden = true
+            self.emptyStateLabel.isHidden = true
+            self.activityIndicator.startAnimating()
+        }
+
         let db = Firestore.firestore()
-        
-        if timeFrame == .global {
-            db.collection("users")
-                .order(by: "score", descending: true)
-                .limit(to: 10)
-                .getDocuments { [weak self] snapshot, error in
-                    guard let self = self else { return }
-                    
-                    if let error = error {
-                        print("Error fetching leaderboard data: \(error.localizedDescription)")
-                        self.showErrorAlert()
-                        return
-                    }
-                    
-                    guard let documents = snapshot?.documents else {
-                        print("No documents found.")
-                        self.scores = []
-                        self.tableView.reloadData()
-                        self.emptyStateLabel.isHidden = false // Show empty state if no global scores
-                        self.tableView.isHidden = true
-                        return
-                    }
-                    
-                    self.scores = documents.compactMap { doc in
-                        let data = doc.data()
-                        guard let name = data["name"] as? String, let score = data["score"] as? Int else { return nil }
-                        return (name, score)
-                    }
-                    
-                    self.emptyStateLabel.isHidden = !self.scores.isEmpty
-                    self.tableView.isHidden = self.scores.isEmpty
-                    DispatchQueue.main.async {
-                        self.tableView.reloadData()
+        let group = DispatchGroup()
+        var fetchError: Error? = nil
+
+        group.enter()
+        fetchGlobalLeaderboard(userId: currentUserId, db: db) { [weak self] error in
+            if let error = error {
+                print("Error fetching global data: \(error.localizedDescription)")
+                fetchError = fetchError ?? error
+            }
+            group.leave()
+        }
+
+        group.enter()
+        fetchFriendsLeaderboard(userId: currentUserId, db: db) { [weak self] error in
+            if let error = error {
+                print("Error fetching friends data: \(error.localizedDescription)")
+                fetchError = fetchError ?? error
+            }
+            group.leave()
+        }
+
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            self.isFetchingData = false
+            self.hasFetchedDataThisSession = true
+            self.activityIndicator.stopAnimating()
+
+            if let error = fetchError {
+                self.showErrorAlert(message: "Failed to load some leaderboard data: \(error.localizedDescription)")
+            }
+
+            self.updateTableViewDisplay()
+        }
+    }
+
+    private func fetchGlobalLeaderboard(userId: String, db: Firestore, completion: @escaping (Error?) -> Void) {
+        db.collection("users")
+            .order(by: "score", descending: true)
+            .limit(to: 10)
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { completion(error); return }
+
+                if let error = error {
+                    completion(error)
+                    return
+                }
+                guard let documents = snapshot?.documents else {
+                    self.globalScores = []
+                    completion(nil)
+                    return
+                }
+
+                let top10 = documents.compactMap { doc -> (userId: String, name: String, score: Int)? in
+                    let data = doc.data()
+                    guard let name = data["name"] as? String, let score = data["score"] as? Int else { return nil }
+                    return (userId: doc.documentID, name: name, score: score)
+                }
+                self.globalScores = top10
+
+                let userIsInTop10 = top10.contains { $0.userId == userId }
+
+                if userIsInTop10 {
+                    self.globalCurrentUserRank = nil
+                    self.globalCurrentUserScoreData = nil
+                    completion(nil)
+                } else {
+                    self.fetchCurrentUserRankAndData(currentUserId: userId, db: db) { rankError in
+                        completion(rankError)
                     }
                 }
-        } else {
-            guard let currentUser = Auth.auth().currentUser else {
-                self.scores = [] // Clear scores if no user
-                self.emptyStateLabel.isHidden = false
-                self.tableView.isHidden = true
-                self.tableView.reloadData() // Reload to show empty state
+            }
+    }
+
+    private func fetchFriendsLeaderboard(userId: String, db: Firestore, completion: @escaping (Error?) -> Void) {
+        let query1 = db.collection("friendRequests")
+            .whereField("fromUserId", isEqualTo: userId)
+            .whereField("status", isEqualTo: "accepted")
+        let query2 = db.collection("friendRequests")
+            .whereField("toUserId", isEqualTo: userId)
+            .whereField("status", isEqualTo: "accepted")
+
+        let group = DispatchGroup()
+        var friendIds = Set<String>()
+        var queryError: Error? = nil
+
+        group.enter()
+        query1.getDocuments { snapshot, error in
+            if let error = error { queryError = queryError ?? error }
+            snapshot?.documents.forEach { doc in
+                if let toUserId = doc.data()["toUserId"] as? String { friendIds.insert(toUserId) }
+            }
+            group.leave()
+        }
+
+        group.enter()
+        query2.getDocuments { snapshot, error in
+            if let error = error { queryError = queryError ?? error }
+            snapshot?.documents.forEach { doc in
+                if let fromUserId = doc.data()["fromUserId"] as? String { friendIds.insert(fromUserId) }
+            }
+            group.leave()
+        }
+
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { completion(queryError); return }
+
+            if let error = queryError {
+                self.friendsScores = []
+                completion(error)
                 return
             }
-            
-            // Fetch friends where the current user is the sender
-            let query1 = db.collection("friendRequests")
-                .whereField("fromUserId", isEqualTo: currentUser.uid)
-                .whereField("status", isEqualTo: "accepted")
 
-            // Fetch friends where the current user is the receiver
-            let query2 = db.collection("friendRequests")
-                .whereField("toUserId", isEqualTo: currentUser.uid)
-                .whereField("status", isEqualTo: "accepted")
-
-            let group = DispatchGroup()
-            var friendIds = Set<String>() // Use a Set to avoid duplicates
-
-            group.enter()
-            query1.getDocuments { snapshot, error in
-                defer { group.leave() }
-                if let error = error {
-                    print("Error fetching friends (query1): \(error.localizedDescription)")
-                    // Optionally show error alert
-                    return
-                }
-                snapshot?.documents.forEach { doc in
-                    if let toUserId = doc.data()["toUserId"] as? String {
-                        friendIds.insert(toUserId)
-                    }
-                }
+            if friendIds.isEmpty {
+                self.friendsScores = []
+                completion(nil)
+                return
             }
 
-            group.enter()
-            query2.getDocuments { snapshot, error in
-                defer { group.leave() }
-                if let error = error {
-                    print("Error fetching friends (query2): \(error.localizedDescription)")
-                    // Optionally show error alert
-                    return
-                }
-                snapshot?.documents.forEach { doc in
-                    if let fromUserId = doc.data()["fromUserId"] as? String {
-                        friendIds.insert(fromUserId)
-                    }
-                }
-            }
+            var fetchedFriendScores: [(userId: String, name: String, score: Int)] = []
+            let fetchGroup = DispatchGroup()
+            var friendFetchError: Error? = nil
 
-            group.notify(queue: .main) { [weak self] in
-                guard let self = self else { return }
-
-                if friendIds.isEmpty {
-                    print("No friends found.")
-                    self.scores = []
-                    self.emptyStateLabel.isHidden = false
-                    self.tableView.isHidden = true
-                    self.tableView.reloadData()
-                    return
-                }
-
-                var friendScores: [(name: String, score: Int)] = []
-                let fetchGroup = DispatchGroup()
-
-                for friendId in friendIds {
-                    fetchGroup.enter()
-                    db.collection("users").document(friendId).getDocument { snapshot, error in
-                        defer { fetchGroup.leave() }
-                        
-                        if let error = error {
-                            print("Error fetching friend data for \(friendId): \(error.localizedDescription)")
-                            return
-                        }
-                        
-                        if let data = snapshot?.data(),
-                           let name = data["name"] as? String,
-                           let score = data["score"] as? Int {
-                            friendScores.append((name: name, score: score))
-                        }
-                    }
-                }
-                
-                // Also fetch current user's score to include in friends list
+            for friendId in friendIds {
                 fetchGroup.enter()
-                db.collection("users").document(currentUser.uid).getDocument { snapshot, error in
-                    defer { fetchGroup.leave() }
-                    if let error = error {
-                        print("Error fetching current user data: \(error.localizedDescription)")
-                        return
-                    }
+                db.collection("users").document(friendId).getDocument { snapshot, error in
                     if let data = snapshot?.data(),
                        let name = data["name"] as? String,
                        let score = data["score"] as? Int {
-                        friendScores.append((name: name, score: score))
+                        fetchedFriendScores.append((userId: friendId, name: name, score: score))
+                    } else if let error = error {
+                        print("Error fetching friend data for \(friendId): \(error.localizedDescription)")
+                        friendFetchError = friendFetchError ?? error
                     }
+                    fetchGroup.leave()
                 }
+            }
 
-                fetchGroup.notify(queue: .main) {
-                    self.scores = friendScores.sorted(by: { $0.score > $1.score })
-                    self.emptyStateLabel.isHidden = !self.scores.isEmpty
-                    self.tableView.isHidden = self.scores.isEmpty
-                    self.tableView.reloadData()
-                }
+            fetchGroup.notify(queue: .main) {
+                self.friendsScores = fetchedFriendScores.sorted { $0.score > $1.score }
+                completion(friendFetchError)
             }
         }
     }
-    
+
+    private func fetchCurrentUserRankAndData(currentUserId: String, db: Firestore, completion: @escaping (Error?) -> Void) {
+        let userDocRef = db.collection("users").document(currentUserId)
+        var fetchError: Error? = nil
+
+        userDocRef.getDocument { [weak self] userSnapshot, userError in
+            guard let self = self else { completion(userError); return }
+
+            if let userError = userError {
+                print("Error fetching current user data: \(userError.localizedDescription)")
+                self.globalCurrentUserRank = nil
+                self.globalCurrentUserScoreData = nil
+                completion(userError)
+                return
+            }
+
+            guard let userData = userSnapshot?.data(),
+                  let userName = userData["name"] as? String,
+                  let userScore = userData["score"] as? Int else {
+                print("Could not parse current user data.")
+                self.globalCurrentUserRank = nil
+                self.globalCurrentUserScoreData = nil
+                completion(nil)
+                return
+            }
+
+            self.globalCurrentUserScoreData = (userId: currentUserId, name: userName, score: userScore)
+
+            db.collection("users")
+              .whereField("score", isGreaterThan: userScore)
+              .count
+              .getAggregation(source: .server) { [weak self] (snapshot, error) in
+                  guard let self = self else { completion(error); return }
+                  if let error = error {
+                      print("Error counting users for rank: \(error.localizedDescription)")
+                      self.globalCurrentUserRank = nil
+                      fetchError = error
+                  } else if let count = snapshot?.count {
+                      self.globalCurrentUserRank = count.intValue + 1
+                      print("Current user rank calculated: \(self.globalCurrentUserRank ?? -1)")
+                  } else {
+                      print("Could not get count for rank.")
+                      self.globalCurrentUserRank = nil
+                  }
+                  completion(fetchError)
+              }
+        }
+    }
+
+    private func updateTableViewDisplay() {
+        DispatchQueue.main.async {
+            if self.timeFrame == .global {
+                self.displayedScores = self.globalScores
+                self.displayedCurrentUserRank = self.globalCurrentUserRank
+                self.displayedCurrentUserScoreData = self.globalCurrentUserScoreData
+                let hasData = !self.displayedScores.isEmpty || self.displayedCurrentUserScoreData != nil
+                self.emptyStateLabel.isHidden = hasData
+                self.tableView.isHidden = !hasData
+                if !hasData { self.emptyStateLabel.text = "Leaderboard is empty." }
+            } else {
+                self.displayedScores = self.friendsScores
+                self.displayedCurrentUserRank = nil
+                self.displayedCurrentUserScoreData = nil
+                let hasData = !self.displayedScores.isEmpty
+                self.emptyStateLabel.isHidden = hasData
+                self.tableView.isHidden = !hasData
+                if !hasData { self.emptyStateLabel.text = "No friends found. Add friends to see their scores here!" }
+            }
+            self.tableView.reloadData()
+        }
+    }
+
+    private func handleLoggedOutState() {
+        self.globalScores = []
+        self.friendsScores = []
+        self.globalCurrentUserRank = nil
+        self.globalCurrentUserScoreData = nil
+        self.displayedScores = []
+        self.displayedCurrentUserRank = nil
+        self.displayedCurrentUserScoreData = nil
+        self.emptyStateLabel.text = "Please log in to view leaderboards."
+
+        DispatchQueue.main.async {
+            self.activityIndicator.stopAnimating()
+            self.emptyStateLabel.isHidden = false
+            self.tableView.isHidden = true
+            self.tableView.reloadData()
+        }
+    }
+
+
     // MARK: - Helper Methods
-    
-    private func showErrorAlert() {
-        let alert = UIAlertController(title: "Error", message: "Failed to load leaderboard data. Please try again later.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+
+    private func showErrorAlert(message: String = "Failed to load leaderboard data. Please try again later.") {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            if self.view.window != nil {
+                 self.present(alert, animated: true)
+            }
+        }
     }
 }
 
@@ -292,30 +433,62 @@ class LeaderboardViewController: UIViewController {
 
 extension LeaderboardViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return scores.count
+        return displayedScores.count + (displayedCurrentUserScoreData != nil ? 1 : 0)
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "LeaderboardCell", for: indexPath) as? LeaderboardCell else {
             return UITableViewCell()
         }
-        
-        let scoreData = scores[indexPath.row]
-        cell.configure(with: scoreData.name, points: scoreData.score, rank: indexPath.row + 1)
+
+        let currentUserId = Auth.auth().currentUser?.uid
+        var isCurrentUserCell = false
+
+        if indexPath.row < displayedScores.count {
+            let scoreData = displayedScores[indexPath.row]
+            cell.configure(with: scoreData.name, points: scoreData.score, rank: indexPath.row + 1)
+            isCurrentUserCell = scoreData.userId == currentUserId
+            cell.setSeparatorVisibility(visible: true)
+
+        } else if let userData = displayedCurrentUserScoreData, let rank = displayedCurrentUserRank {
+            cell.configure(with: userData.name, points: userData.score, rank: rank, isRankApproximate: false)
+            isCurrentUserCell = true
+            cell.setSeparatorVisibility(visible: false)
+            cell.setHighlight(isHighlighted: true, isSpecialRank: true)
+
+             if let previousCell = tableView.cellForRow(at: IndexPath(row: indexPath.row - 1, section: 0)) as? LeaderboardCell {
+                 previousCell.addBottomSeparator()
+             }
+
+        } else {
+             cell.configure(with: "Error", points: 0, rank: 0)
+             cell.setSeparatorVisibility(visible: false)
+        }
+
+        if isCurrentUserCell && indexPath.row < displayedScores.count {
+             cell.setHighlight(isHighlighted: true, isSpecialRank: false)
+         } else if !isCurrentUserCell && indexPath.row < displayedScores.count {
+             cell.setHighlight(isHighlighted: false, isSpecialRank: false)
+         }
+
         return cell
     }
-    
+
+
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 100 // Keep consistent height
+        if timeFrame == .global && indexPath.row == displayedScores.count && displayedCurrentUserScoreData != nil {
+            return 110
+        }
+        return 100
     }
 }
 
-// MARK: - LeaderboardCell
 
+// MARK: - LeaderboardCell
 class LeaderboardCell: UITableViewCell {
-    
+
     // MARK: - Properties
-    
+
     private let containerView = UIView()
     private let rankLabel = UILabel()
     private let avatarImageView = UIImageView()
@@ -323,115 +496,168 @@ class LeaderboardCell: UITableViewCell {
     private let usernameLabel = UILabel()
     private let pointsLabel = UILabel()
     private let accentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
-    
+    private let separatorView = UIView()
+    private let bottomSeparatorView = UIView()
+
+
     // MARK: - Initialization
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupCell()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Cell Setup
-    
+
     private func setupCell() {
         selectionStyle = .none
-        backgroundColor = .clear // Ensure cell background is clear
-        contentView.backgroundColor = .clear // Ensure content view background is clear
-        
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 15
-        containerView.layer.masksToBounds = false // Allow shadow if needed later
+        containerView.layer.masksToBounds = false
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(containerView) // Add to contentView
-        
+        contentView.addSubview(containerView)
+
         rankLabel.font = UIFont(name: "Sen-Regular", size: 18)!
         rankLabel.textColor = .lightGray
         rankLabel.textAlignment = .center
         rankLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(rankLabel)
-        
+
         avatarImageView.backgroundColor = accentColor
-        avatarImageView.layer.cornerRadius = 25 // Half of width/height
+        avatarImageView.layer.cornerRadius = 25
         avatarImageView.clipsToBounds = true
         avatarImageView.layer.borderWidth = 2
-        avatarImageView.layer.borderColor = UIColor.white.cgColor // Optional: border for definition
+        avatarImageView.layer.borderColor = UIColor.white.cgColor
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(avatarImageView)
-        
+
         avatarLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         avatarLabel.textColor = .white
         avatarLabel.textAlignment = .center
         avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarImageView.addSubview(avatarLabel) // Add label inside image view
-        
+        avatarImageView.addSubview(avatarLabel)
+
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 18)!
         usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(usernameLabel)
-        
+
         pointsLabel.font = UIFont(name: "Sen-Regular", size: 16)!
         pointsLabel.textColor = .gray
         pointsLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(pointsLabel)
-        
-        // Constraints using contentView anchors for margins
+
+        separatorView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(separatorView)
+
+        bottomSeparatorView.backgroundColor = UIColor.lightGray
+        bottomSeparatorView.translatesAutoresizingMaskIntoConstraints = false
+        bottomSeparatorView.isHidden = true
+        contentView.addSubview(bottomSeparatorView)
+
+
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 0), // Adjust if table view has padding
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0), // Adjust if table view has padding
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 0),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
-            
+
             rankLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 15),
             rankLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            rankLabel.widthAnchor.constraint(equalToConstant: 30), // Fixed width for rank
-            
+            rankLabel.widthAnchor.constraint(equalToConstant: 40),
+
             avatarImageView.leadingAnchor.constraint(equalTo: rankLabel.trailingAnchor, constant: 10),
             avatarImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             avatarImageView.widthAnchor.constraint(equalToConstant: 50),
             avatarImageView.heightAnchor.constraint(equalToConstant: 50),
-            
-            // Center avatar label within avatar image view
+
             avatarLabel.centerXAnchor.constraint(equalTo: avatarImageView.centerXAnchor),
             avatarLabel.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor),
-            
+
             usernameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 15),
-            usernameLabel.topAnchor.constraint(equalTo: avatarImageView.topAnchor, constant: 2), // Align top slightly offset
-            usernameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -15), // Add trailing padding
-            
+            usernameLabel.topAnchor.constraint(equalTo: avatarImageView.topAnchor, constant: 2),
+            usernameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -15),
+
             pointsLabel.leadingAnchor.constraint(equalTo: usernameLabel.leadingAnchor),
-            pointsLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4), // Space below username
-            pointsLabel.trailingAnchor.constraint(equalTo: usernameLabel.trailingAnchor) // Align trailing with username
+            pointsLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4),
+            pointsLabel.trailingAnchor.constraint(equalTo: usernameLabel.trailingAnchor),
+
+            separatorView.leadingAnchor.constraint(equalTo: usernameLabel.leadingAnchor),
+            separatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -15),
+            separatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            separatorView.heightAnchor.constraint(equalToConstant: 0.5),
+
+             bottomSeparatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+             bottomSeparatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+             bottomSeparatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -2),
+             bottomSeparatorView.heightAnchor.constraint(equalToConstant: 1)
         ])
     }
-    
+
     // MARK: - Configuration
-    
-    func configure(with username: String, points: Int, rank: Int) {
-        usernameLabel.text = username
-        pointsLabel.text = "\(points) points"
-        rankLabel.text = "\(rank)"
-        
-        // Set avatar initial
-        if let firstLetter = username.first {
-            avatarLabel.text = String(firstLetter).uppercased()
-        } else {
-            avatarLabel.text = "?" // Fallback if username is empty
-        }
+
+     func configure(with username: String, points: Int, rank: Int, isRankApproximate: Bool = false) {
+         usernameLabel.text = username
+         pointsLabel.text = "\(points) points"
+
+         if isRankApproximate {
+             rankLabel.text = "..."
+         } else {
+             rankLabel.text = "\(rank)"
+         }
+
+         if let firstLetter = username.first {
+             avatarLabel.text = String(firstLetter).uppercased()
+         } else {
+             avatarLabel.text = "?"
+         }
+     }
+
+    func setSeparatorVisibility(visible: Bool) {
+        separatorView.isHidden = !visible
     }
-    
+
+     func addBottomSeparator() {
+         bottomSeparatorView.isHidden = false
+     }
+
+    func setHighlight(isHighlighted: Bool, isSpecialRank: Bool) {
+        if isHighlighted {
+            containerView.backgroundColor = accentColor.withAlphaComponent(0.1)
+            containerView.layer.borderColor = accentColor.cgColor
+            containerView.layer.borderWidth = isSpecialRank ? 0 : 1.5
+            rankLabel.textColor = accentColor
+            usernameLabel.textColor = accentColor
+        } else {
+            containerView.backgroundColor = .white
+            containerView.layer.borderWidth = 0
+            rankLabel.textColor = .lightGray
+            usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
+        }
+         containerView.transform = isSpecialRank ? CGAffineTransform(translationX: 0, y: 10) : .identity
+
+    }
+
+
     // MARK: - Reuse
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        // Reset labels and image view content if necessary
         usernameLabel.text = nil
         pointsLabel.text = nil
         rankLabel.text = nil
         avatarLabel.text = nil
-        // avatarImageView.image = nil // If using actual images
+        setHighlight(isHighlighted: false, isSpecialRank: false)
+        setSeparatorVisibility(visible: true)
+        bottomSeparatorView.isHidden = true
+        containerView.transform = .identity
     }
 }
