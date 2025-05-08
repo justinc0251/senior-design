@@ -185,6 +185,8 @@ class ConnectionsGameViewController: UIViewController {
         let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem = backButton
         
+        tabBarController?.tabBar.isHidden = true
+        
         headerView.backgroundColor = .clear
         headerView.layer.shadowOpacity = 0
         attemptsContainerView.backgroundColor = .clear
@@ -200,6 +202,49 @@ class ConnectionsGameViewController: UIViewController {
             startTimer()
         }
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tabBarController?.tabBar.isHidden = false
+        stopGame()
+    }
+    
+    private func stopGame() {
+        gameTimer?.invalidate()
+        gameTimer = nil
+
+        selectedButtons.removeAll()
+        buttonCategories.removeAll()
+        buttonImages.removeAll()
+        completedCategories.removeAll()
+
+        // Optional: Reset attempts and timer
+        remainingTime = 120
+        attemptsLeft = totalAttempts
+        timerLabel.text = "2:00"
+
+        // Clear tutorial overlays or other subviews (if any remain)
+        cleanupTutorialState()
+
+        // Remove result or overlay views
+        for subview in view.subviews {
+            if subview.tag == 999 || subview.tag == 998 || subview.tag == 1234 {
+                subview.removeFromSuperview()
+            }
+        }
+
+        // Reset any animated or selected grid buttons
+        for case let button as UIButton in gridContainerView.subviews {
+            button.layer.borderWidth = 0
+            button.layer.borderColor = nil
+            button.transform = .identity
+            button.backgroundColor = Theme.cardColor
+            button.isEnabled = true
+            button.alpha = 1
+            button.setTitle("", for: .normal)
+        }
+    }
+
         
     // MARK: - UI Setup
     
@@ -914,6 +959,13 @@ class ConnectionsGameViewController: UIViewController {
                 })
             }
         }
+        for subview in gridContainerView.subviews {
+            if let button = subview as? UIButton {
+                button.isUserInteractionEnabled = false
+            }
+        }
+        gridContainerView.alpha = 0.7
+        helpButton.isUserInteractionEnabled = false
     }
     
     // MARK: - Actions
