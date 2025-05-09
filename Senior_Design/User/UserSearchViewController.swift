@@ -2,6 +2,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
+
 // MARK: -  User Search
 class UserSearchViewController: UIViewController {
 
@@ -18,9 +19,11 @@ class UserSearchViewController: UIViewController {
     private let textSecondaryColor = UIColor.darkGray
     private let separatorColor = UIColor(white: 0.9, alpha: 1.0)
     private let searchBarBackgroundColor = UIColor(white: 0.95, alpha: 1.0)
+    // Use a default background color for the avatar before the actual color is loaded
     private let avatarBackgroundColor = UIColor(white: 0.9, alpha: 1.0)
 
-    private var searchResults: [(username: String, name: String, userId: String)] = []
+    // Update searchResults structure to include profileColor
+    private var searchResults: [(username: String, name: String, userId: String, profileColor: String)] = []
     private var isSearching = false
 
     override func viewDidLoad() {
@@ -125,7 +128,7 @@ class UserSearchViewController: UIViewController {
 
         let db = Firestore.firestore()
 
-        guard let currentUserId = UserDefaults.standard.string(forKey: "currentUserId") else {
+        guard let currentUserId = Auth.auth().currentUser?.uid else { // Use Firebase Auth current user
             print("Warning: Could not get current user ID")
             self.isSearching = false
             self.activityIndicator.stopAnimating()
@@ -159,17 +162,19 @@ class UserSearchViewController: UIViewController {
                     return
                 }
 
-                let allUsers = documents.compactMap { doc -> (username: String, name: String, userId: String)? in
+                // Update compactMap to include profileColor
+                let allUsers = documents.compactMap { doc -> (username: String, name: String, userId: String, profileColor: String)? in
                     let data = doc.data()
                     let username = data["username"] as? String ?? "user"
                     let name = data["name"] as? String ?? "Unknown"
                     let userId = doc.documentID
-
+                    let profileColor = data["profileColor"] as? String ?? "#4CBB7B"
+                    
                     if userId == currentUserId {
-                        return nil
+                        return nil // Exclude current user
                     }
 
-                    return (username: username, name: name, userId: userId)
+                    return (username: username, name: name, userId: userId, profileColor: profileColor)
                 }
 
                 var excludedUserIds = Set<String>()
@@ -213,15 +218,15 @@ class UserSearchViewController: UIViewController {
                 group.notify(queue: .main) {
                     let filteredUsers = allUsers.filter { !excludedUserIds.contains($0.userId) }
 
-                    if !query.isEmpty {
-                        let lowercaseQuery = query.lowercased()
-                        self.searchResults = filteredUsers.filter {
-                            $0.name.lowercased().contains(lowercaseQuery) ||
-                            $0.username.lowercased().contains(lowercaseQuery)
-                        }
-                    } else {
-                        self.searchResults = filteredUsers
-                    }
+                if !query.isEmpty {
+                    let lowercaseQuery = query.lowercased()
+                    self.searchResults = filteredUsers.filter {
+                        $0.name.lowercased().contains(lowercaseQuery) ||
+                        $0.username.lowercased().contains(lowercaseQuery)
+                    }.sorted { $0.name.lowercased() < $1.name.lowercased() }
+                } else {
+                    self.searchResults = filteredUsers.sorted { $0.name.lowercased() < $1.name.lowercased() }
+                }
 
                     self.activityIndicator.stopAnimating()
                     self.tableView.reloadData()
@@ -239,7 +244,7 @@ class UserSearchViewController: UIViewController {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        guard let currentUserId = UserDefaults.standard.string(forKey: "currentUserId") else {
+        guard let currentUserId = Auth.auth().currentUser?.uid else { // Use Firebase Auth current user
             showError(message: "You need to be logged in to add friends")
             return
         }
@@ -251,41 +256,53 @@ class UserSearchViewController: UIViewController {
 
         let db = Firestore.firestore()
 
+        // Check if a request already exists (either way) or if they are already friends
         let group = DispatchGroup()
-        var requestExists = false
+        var relationshipExists = false
 
+        // Check: Current user sent request to target user (pending or accepted)
         group.enter()
         db.collection("friendRequests")
             .whereField("fromUserId", isEqualTo: currentUserId)
             .whereField("toUserId", isEqualTo: userId)
-            .whereField("status", in: ["pending", "accepted"])
+            .limit(to: 1) // Limit to 1 as we only need to know if *any* exist
             .getDocuments { snapshot, error in
                 if let count = snapshot?.count, count > 0 {
-                    requestExists = true
+                    relationshipExists = true
+                    print("Relationship found: Current user -> Target user")
                 }
                 group.leave()
             }
 
+        // Check: Target user sent request to current user (pending or accepted)
         group.enter()
         db.collection("friendRequests")
             .whereField("fromUserId", isEqualTo: userId)
             .whereField("toUserId", isEqualTo: currentUserId)
-            .whereField("status", in: ["pending", "accepted"])
+            .limit(to: 1) // Limit to 1
             .getDocuments { snapshot, error in
                 if let count = snapshot?.count, count > 0 {
-                    requestExists = true
+                    relationshipExists = true
+                     print("Relationship found: Target user -> Current user")
                 }
                 group.leave()
             }
 
+
         group.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
 
-            if requestExists {
+            if relationshipExists {
                 self.showError(message: "Friend request already sent or you are already friends.")
+                // Optionally re-enable the button on the specific cell if needed
+                if let index = self.searchResults.firstIndex(where: { $0.userId == userId }),
+                   let cell = self.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? SearchResultCell {
+                    cell.resetButtonState()
+                }
                 return
             }
 
+            // If no relationship exists, proceed to send request
             let requestData: [String: Any] = [
                 "fromUserId": currentUserId,
                 "toUserId": userId,
@@ -296,10 +313,16 @@ class UserSearchViewController: UIViewController {
             db.collection("friendRequests").addDocument(data: requestData) { error in
                 if let error = error {
                     self.showError(message: "Error sending friend request: \(error.localizedDescription)")
+                     // Re-enable button on error
+                     if let index = self.searchResults.firstIndex(where: { $0.userId == userId }),
+                        let cell = self.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? SearchResultCell {
+                         cell.resetButtonState()
+                     }
                     return
                 }
 
                 self.showSuccessMessage(username: username)
+                // Remove user from search results immediately after sending request
                 self.searchResults.removeAll { $0.userId == userId }
                 self.tableView.reloadData()
                 self.updateEmptyStateVisibility()
@@ -314,7 +337,10 @@ class UserSearchViewController: UIViewController {
         successView.alpha = 0
         successView.layer.cornerRadius = 8
         successView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(successView)
+        // Add to the key window to overlay everything
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
+        window.addSubview(successView)
+
 
         let checkmark = UIImageView(image: UIImage(systemName: "checkmark"))
         checkmark.tintColor = .white
@@ -330,10 +356,12 @@ class UserSearchViewController: UIViewController {
         successView.addSubview(label)
 
         NSLayoutConstraint.activate([
-            successView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            successView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            // Position relative to window edges
+            successView.centerXAnchor.constraint(equalTo: window.centerXAnchor),
+            successView.bottomAnchor.constraint(equalTo: window.safeAreaLayoutGuide.bottomAnchor, constant: -30), // Adjust spacing as needed
             successView.widthAnchor.constraint(greaterThanOrEqualToConstant: 200),
             successView.heightAnchor.constraint(equalToConstant: 44),
+
 
             checkmark.leadingAnchor.constraint(equalTo: successView.leadingAnchor, constant: 16),
             checkmark.centerYAnchor.constraint(equalTo: successView.centerYAnchor),
@@ -347,14 +375,17 @@ class UserSearchViewController: UIViewController {
 
         UIView.animate(withDuration: 0.3, animations: {
             successView.alpha = 1
+            successView.transform = CGAffineTransform(translationX: 0, y: -10) // Slight upward animation
         }, completion: { _ in
             UIView.animate(withDuration: 0.3, delay: 2.0, options: [], animations: {
                 successView.alpha = 0
+                 successView.transform = .identity // Return to original position
             }, completion: { _ in
                 successView.removeFromSuperview()
             })
         })
     }
+
 
     private func showError(message: String) {
         let alertController = UIAlertController(
@@ -401,7 +432,12 @@ extension UserSearchViewController: UITableViewDelegate, UITableViewDataSource {
         }
 
         let result = searchResults[indexPath.row]
-        cell.configure(username: result.username, name: result.name, accentColor: accentColor)
+        // Pass the profileColor to the configure method
+        cell.configure(username: result.username,
+                       name: result.name,
+                       profileColorHex: result.profileColor,
+                       accentColor: accentColor)
+
 
         cell.onAddFriend = { [weak self] in
             self?.sendFriendRequest(to: result.userId, username: result.username)
@@ -428,6 +464,7 @@ class SearchResultCell: UITableViewCell {
     private let usernameLabel = UILabel()
     private let addButton = UIButton(type: .system)
     private let separator = UIView()
+    private let defaultAvatarColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
 
     var onAddFriend: (() -> Void)?
 
@@ -442,12 +479,13 @@ class SearchResultCell: UITableViewCell {
 
     private func setupCell() {
         selectionStyle = .none
-        backgroundColor = .white
+        backgroundColor = .white // Use the controller's background constant if needed
 
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .white // Use the controller's cell background constant if needed
 
-        avatarView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
+        avatarView.backgroundColor = defaultAvatarColor // Start with default
         avatarView.layer.cornerRadius = 25
+        avatarView.clipsToBounds = true // Ensure label doesn't go outside
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 
@@ -458,12 +496,12 @@ class SearchResultCell: UITableViewCell {
         avatarView.addSubview(avatarLabel)
 
         nameLabel.font = UIFont(name: "Sen-Bold", size: 16)
-        nameLabel.textColor = .black
+        nameLabel.textColor = .black // Use controller's text primary color constant
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(nameLabel)
 
         usernameLabel.font = UIFont(name: "Sen-Regular", size: 14)
-        usernameLabel.textColor = .darkGray
+        usernameLabel.textColor = .darkGray // Use controller's text secondary color constant
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(usernameLabel)
 
@@ -475,7 +513,7 @@ class SearchResultCell: UITableViewCell {
         addButton.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(addButton)
 
-        separator.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
+        separator.backgroundColor = UIColor(white: 0.9, alpha: 1.0) // Use controller's separator color constant
         separator.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(separator)
 
@@ -490,7 +528,7 @@ class SearchResultCell: UITableViewCell {
 
             nameLabel.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 12),
             nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            nameLabel.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -12),
+            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: addButton.leadingAnchor, constant: -12), // Use lessThanOrEqualTo
 
             usernameLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             usernameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
@@ -498,7 +536,7 @@ class SearchResultCell: UITableViewCell {
 
             addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             addButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            addButton.widthAnchor.constraint(equalToConstant: 30),
+            addButton.widthAnchor.constraint(equalToConstant: 30), // Ensure button is tappable
             addButton.heightAnchor.constraint(equalToConstant: 30),
 
             separator.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
@@ -508,33 +546,47 @@ class SearchResultCell: UITableViewCell {
         ])
     }
 
-    func configure(username: String, name: String, accentColor: UIColor) {
+   // In SearchResultCell class, update the configure method
+    func configure(username: String, name: String, profileColorHex: String, accentColor: UIColor) {
         nameLabel.text = name
         usernameLabel.text = "@\(username)"
 
         avatarLabel.text = String(name.first ?? username.first ?? "?").uppercased()
 
-        avatarView.backgroundColor = accentColor
+        // Use accentColor as fallback instead of defaultAvatarColor
+        avatarView.backgroundColor = UIColor.fromHex(profileColorHex) ?? accentColor
+
+        // Use the passed accentColor for the button
         addButton.tintColor = accentColor
         addButton.layer.borderColor = accentColor.cgColor
 
+        // Reset button state visually
+        resetButtonState()
+    }
+
+
+    @objc private func addButtonTapped() {
+        // Disable button visually immediately
+        addButton.isEnabled = false
+        addButton.alpha = 0.5
+        addButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        // Call the closure to handle the logic (which might re-enable on error)
+        onAddFriend?()
+         // Animate back slightly for feedback, but keep it disabled
+        UIView.animate(withDuration: 0.1, delay: 0.1, options: []) {
+             self.addButton.transform = .identity
+         }
+
+    }
+
+    // Add a method to reset the button's appearance if needed (e.g., on error)
+    func resetButtonState() {
         addButton.isEnabled = true
         addButton.alpha = 1.0
+        addButton.transform = .identity
         addButton.setImage(UIImage(systemName: "person.badge.plus"), for: .normal)
     }
 
-    @objc private func addButtonTapped() {
-        onAddFriend?()
-        addButton.isEnabled = false
-        addButton.alpha = 0.5
-        UIView.animate(withDuration: 0.1, animations: {
-            self.addButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        }, completion: { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.addButton.transform = .identity
-            }
-        })
-    }
 
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -542,12 +594,7 @@ class SearchResultCell: UITableViewCell {
         usernameLabel.text = nil
         avatarLabel.text = nil
         onAddFriend = nil
-        addButton.isEnabled = true
-        addButton.alpha = 1.0
-        addButton.transform = .identity
-        addButton.setImage(UIImage(systemName: "person.badge.plus"), for: .normal)
-        avatarView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
-        addButton.tintColor = .systemBlue
-        addButton.layer.borderColor = UIColor.systemBlue.cgColor
+        avatarView.backgroundColor = defaultAvatarColor // Reset to default color
+        resetButtonState() // Reset button appearance
     }
 }
