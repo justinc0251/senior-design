@@ -719,7 +719,6 @@ class LoginViewController: UIViewController {
         }
     }
 
-    
     private func saveAppleUserData(firebaseUser: User, name: String?, email: String?) {
         let db = Firestore.firestore()
         let ref = db.collection("users").document(firebaseUser.uid)
@@ -742,12 +741,13 @@ class LoginViewController: UIViewController {
                  resolvedName = snapshot?.data()?["name"] as? String ?? "Apple User"
             }
 
+            let resolvedEmail = email ?? firebaseUser.email ?? snapshot?.data()?["email"] as? String ?? ""
 
             var userData: [String: Any] = [
                 "uid": firebaseUser.uid,
                 "provider": "apple",
                 "name": resolvedName,
-                "email": email ?? firebaseUser.email ?? snapshot?.data()?["email"] as? String ?? ""
+                "email": resolvedEmail
             ]
 
             if let document = snapshot, document.exists {
@@ -763,6 +763,15 @@ class LoginViewController: UIViewController {
                       userData["username"] = self.generateUsername(from: resolvedName)
                  }
 
+                 if existingData["profileColor"] == nil {
+                     let color = self.colorForUser(email: resolvedEmail)
+                     let colorHex = color.toHex() ?? "#4CBB7B"
+                     userData["profileColor"] = colorHex
+                     print("Assigning new profileColor (\(colorHex)) for existing Apple user: \(firebaseUser.uid)")
+                 } else {
+                     userData["profileColor"] = existingData["profileColor"]
+                 }
+
                 ref.setData(userData, merge: true) { error in
                     self.handleFirestoreSaveCompletion(error: error, firebaseUser: firebaseUser)
                 }
@@ -773,6 +782,11 @@ class LoginViewController: UIViewController {
                 userData["following"] = []
                 userData["username"] = self.generateUsername(from: resolvedName)
                 userData["createdAt"] = FieldValue.serverTimestamp()
+
+                let color = self.colorForUser(email: resolvedEmail)
+                let colorHex = color.toHex() ?? "#4CBB7B"
+                userData["profileColor"] = colorHex
+                print("Assigning profileColor (\(colorHex)) for new Apple user: \(firebaseUser.uid)")
 
                 ref.setData(userData) { error in
                     self.handleFirestoreSaveCompletion(error: error, firebaseUser: firebaseUser)
