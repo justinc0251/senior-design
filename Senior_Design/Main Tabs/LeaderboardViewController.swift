@@ -5,15 +5,14 @@ import FirebaseAuth
 class LeaderboardViewController: UIViewController {
 
     // MARK: - Properties
-
-    private var globalScores: [(userId: String, name: String, score: Int, profileColor: String?)] = []
-    private var friendsScores: [(userId: String, name: String, score: Int, profileColor: String?)] = []
+    private var globalScores: [(userId: String, name: String, score: Int, profileColor: String)] = []
+    private var friendsScores: [(userId: String, name: String, score: Int, profileColor: String)] = []
     private var globalCurrentUserRank: Int?
-    private var globalCurrentUserScoreData: (userId: String, name: String, score: Int, profileColor: String?)?
+    private var globalCurrentUserScoreData: (userId: String, name: String, score: Int, profileColor: String)?
 
-    private var displayedScores: [(userId: String, name: String, score: Int, profileColor: String?)] = []
+    private var displayedScores: [(userId: String, name: String, score: Int, profileColor: String)] = []
     private var displayedCurrentUserRank: Int?
-    private var displayedCurrentUserScoreData: (userId: String, name: String, score: Int, profileColor: String?)?
+    private var displayedCurrentUserScoreData: (userId: String, name: String, score: Int, profileColor: String)?
 
     private var timeFrame: TimeFrame = .global
     private var isFetchingData = false
@@ -32,7 +31,6 @@ class LeaderboardViewController: UIViewController {
     private let tableView = UITableView()
     private let emptyStateLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
-    private let defaultAccentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
 
     // MARK: - Lifecycle Methods
 
@@ -47,7 +45,7 @@ class LeaderboardViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if !hasFetchedDataThisSession || AuthManager.shared.currentUserId == nil && !globalScores.isEmpty {
+        if !hasFetchedDataThisSession {
             fetchAllLeaderboardData()
         } else {
              updateTableViewDisplay()
@@ -56,6 +54,7 @@ class LeaderboardViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        hasFetchedDataThisSession = false
     }
 
 
@@ -72,7 +71,7 @@ class LeaderboardViewController: UIViewController {
         segmentedControl.selectedSegmentIndex = 0
         segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         segmentedControl.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
-        segmentedControl.selectedSegmentTintColor = defaultAccentColor
+        segmentedControl.selectedSegmentTintColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
 
         let normalAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.black,
@@ -118,7 +117,7 @@ class LeaderboardViewController: UIViewController {
     private func setupActivityIndicator() {
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.hidesWhenStopped = true
-        activityIndicator.color = defaultAccentColor
+        activityIndicator.color = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
         view.addSubview(activityIndicator)
         view.bringSubviewToFront(activityIndicator)
 
@@ -169,7 +168,7 @@ class LeaderboardViewController: UIViewController {
 
     private func fetchAllLeaderboardData() {
         guard !isFetchingData else { return }
-        guard let currentUserId = AuthManager.shared.currentUserId else {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
             handleLoggedOutState()
             return
         }
@@ -210,9 +209,7 @@ class LeaderboardViewController: UIViewController {
             self.activityIndicator.stopAnimating()
 
             if let error = fetchError {
-                if self.isViewLoaded && self.view.window != nil {
-                    self.showErrorAlert(message: "Failed to load some leaderboard data: \(error.localizedDescription)")
-                }
+                self.showErrorAlert(message: "Failed to load some leaderboard data: \(error.localizedDescription)")
             }
 
             self.updateTableViewDisplay()
@@ -236,10 +233,12 @@ class LeaderboardViewController: UIViewController {
                     return
                 }
 
-                let top10 = documents.compactMap { doc -> (userId: String, name: String, score: Int, profileColor: String?)? in
+                // Fetch profileColor along with other data
+                let top10 = documents.compactMap { doc -> (userId: String, name: String, score: Int, profileColor: String)? in
                     let data = doc.data()
-                    guard let name = data["name"] as? String, let score = data["score"] as? Int else { return nil }
-                    let profileColor = data["profileColor"] as? String
+                    guard let name = data["name"] as? String,
+                          let score = data["score"] as? Int else { return nil }
+                    let profileColor = data["profileColor"] as? String ?? "#4CBB7B" // Default color
                     return (userId: doc.documentID, name: name, score: score, profileColor: profileColor)
                 }
                 self.globalScores = top10
@@ -247,8 +246,8 @@ class LeaderboardViewController: UIViewController {
                 let userIsInTop10 = top10.contains { $0.userId == userId }
 
                 if userIsInTop10 {
-                    self.globalCurrentUserRank = top10.firstIndex { $0.userId == userId }.map { $0 + 1 }
-                    self.globalCurrentUserScoreData = top10.first { $0.userId == userId }
+                    self.globalCurrentUserRank = nil
+                    self.globalCurrentUserScoreData = nil
                     completion(nil)
                 } else {
                     self.fetchCurrentUserRankAndData(currentUserId: userId, db: db) { rankError in
@@ -288,7 +287,6 @@ class LeaderboardViewController: UIViewController {
             group.leave()
         }
 
-
         group.notify(queue: .main) { [weak self] in
             guard let self = self else { completion(queryError); return }
 
@@ -298,25 +296,28 @@ class LeaderboardViewController: UIViewController {
                 return
             }
 
+            // Add current user ID to the set to fetch their data as well for the friends list
             friendIds.insert(userId)
 
-            if friendIds.isEmpty {
+            if friendIds.isEmpty { // Should not happen now as current user is included
                 self.friendsScores = []
                 completion(nil)
                 return
             }
 
-            var fetchedFriendScores: [(userId: String, name: String, score: Int, profileColor: String?)] = []
+
+            var fetchedFriendScores: [(userId: String, name: String, score: Int, profileColor: String)] = []
             let fetchGroup = DispatchGroup()
             var friendFetchError: Error? = nil
 
             for friendId in friendIds {
                 fetchGroup.enter()
                 db.collection("users").document(friendId).getDocument { snapshot, error in
+                    // Fetch profileColor here too
                     if let data = snapshot?.data(),
                        let name = data["name"] as? String,
                        let score = data["score"] as? Int {
-                        let profileColor = data["profileColor"] as? String
+                        let profileColor = data["profileColor"] as? String ?? "#4CBB7B" // Default color
                         fetchedFriendScores.append((userId: friendId, name: name, score: score, profileColor: profileColor))
                     } else if let error = error {
                         print("Error fetching friend data for \(friendId): \(error.localizedDescription)")
@@ -327,6 +328,7 @@ class LeaderboardViewController: UIViewController {
             }
 
             fetchGroup.notify(queue: .main) {
+                // Sort by score after fetching all friends
                 self.friendsScores = fetchedFriendScores.sorted { $0.score > $1.score }
                 completion(friendFetchError)
             }
@@ -357,7 +359,8 @@ class LeaderboardViewController: UIViewController {
                 completion(nil)
                 return
             }
-            let profileColor = userData["profileColor"] as? String
+             // Fetch profileColor for the current user
+            let profileColor = userData["profileColor"] as? String ?? "#4CBB7B" // Default color
 
             self.globalCurrentUserScoreData = (userId: currentUserId, name: userName, score: userScore, profileColor: profileColor)
 
@@ -384,28 +387,40 @@ class LeaderboardViewController: UIViewController {
 
     private func updateTableViewDisplay() {
         DispatchQueue.main.async {
-            let currentUserId = AuthManager.shared.currentUserId
-
             if self.timeFrame == .global {
                 self.displayedScores = self.globalScores
                 self.displayedCurrentUserRank = self.globalCurrentUserRank
                 self.displayedCurrentUserScoreData = self.globalCurrentUserScoreData
-                let currentUserInTop10 = self.displayedScores.contains { $0.userId == currentUserId }
-                let shouldShowSeparateCurrentUserRow = !currentUserInTop10 && self.displayedCurrentUserScoreData != nil
-
-                let hasData = !self.displayedScores.isEmpty || shouldShowSeparateCurrentUserRow
+                let hasData = !self.displayedScores.isEmpty || self.displayedCurrentUserScoreData != nil
                 self.emptyStateLabel.isHidden = hasData
                 self.tableView.isHidden = !hasData
                 if !hasData { self.emptyStateLabel.text = "Leaderboard is empty." }
-
             } else {
+                // Logic for Friends tab
                 self.displayedScores = self.friendsScores
-                self.displayedCurrentUserRank = nil
-                self.displayedCurrentUserScoreData = nil
-                let hasData = !self.displayedScores.isEmpty
+                self.displayedCurrentUserRank = nil // Rank is implicit by position
+                self.displayedCurrentUserScoreData = nil // User is part of the main list
+
+                // Check if the user has at least one friend (list includes the user themselves)
+                let hasFriends = self.friendsScores.count > 1
+                let hasData = !self.friendsScores.isEmpty && hasFriends // Show table only if there are friends + user
+
                 self.emptyStateLabel.isHidden = hasData
                 self.tableView.isHidden = !hasData
-                if !hasData { self.emptyStateLabel.text = "No friends found or scores available. Add friends to see their scores here!" }
+
+                if !hasData {
+                     // If the list only contains the current user, it means no friends added
+                    if self.friendsScores.count == 1 && self.friendsScores.first?.userId == Auth.auth().currentUser?.uid {
+                         self.emptyStateLabel.text = "No friends found. Add friends via Profile to see them here!"
+                    } else if self.friendsScores.isEmpty {
+                         // Handles cases where data might still be loading or truly empty
+                         self.emptyStateLabel.text = "No friends found or data is loading.\nAdd friends via Profile to see them here!"
+                    } else {
+                         // Fallback - should ideally not be reached if fetch includes user
+                          self.emptyStateLabel.text = "No friends found. Add friends via Profile to see them here!"
+                    }
+
+                }
             }
             self.tableView.reloadData()
         }
@@ -437,7 +452,7 @@ class LeaderboardViewController: UIViewController {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
-            if self.isViewLoaded && self.view.window != nil {
+            if self.view.window != nil {
                  self.present(alert, animated: true)
             }
         }
@@ -447,85 +462,71 @@ class LeaderboardViewController: UIViewController {
 // MARK: - UITableViewDelegate, UITableViewDataSource
 
 extension LeaderboardViewController: UITableViewDelegate, UITableViewDataSource {
-
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let baseCount = displayedScores.count
-        let currentUserInTop10 = displayedScores.contains { $0.userId == AuthManager.shared.currentUserId }
-        let shouldShowSeparateCurrentUserRow = timeFrame == .global && !currentUserInTop10 && displayedCurrentUserScoreData != nil
-        return baseCount + (shouldShowSeparateCurrentUserRow ? 1 : 0)
+         // Global: top 10 + potentially current user
+         // Friends: Just the list of friends (which includes the current user)
+        return (timeFrame == .global && displayedCurrentUserScoreData != nil) ? displayedScores.count + 1 : displayedScores.count
     }
-
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "LeaderboardCell", for: indexPath) as? LeaderboardCell else {
             return UITableViewCell()
         }
 
-        let currentUserId = AuthManager.shared.currentUserId
+        let currentUserId = Auth.auth().currentUser?.uid
         var isCurrentUserCell = false
-        var isSpecialRankRow = false
+        let defaultColor = "#4CBB7B" // Define a default color hex
 
-        let currentUserInTop10 = displayedScores.contains { $0.userId == currentUserId }
-        let shouldShowSeparateCurrentUserRow = timeFrame == .global && !currentUserInTop10 && displayedCurrentUserScoreData != nil
-        let isSeparateCurrentUserRow = shouldShowSeparateCurrentUserRow && indexPath.row == displayedScores.count
-
-        if isSeparateCurrentUserRow {
-            if let userData = displayedCurrentUserScoreData, let rank = displayedCurrentUserRank {
-                cell.configure(
-                    with: userData.name,
-                    points: userData.score,
-                    rank: rank,
-                    profileColorHex: userData.profileColor,
-                    isRankApproximate: false
-                )
-                isCurrentUserCell = true
-                isSpecialRankRow = true
-                cell.setSeparatorVisibility(visible: false)
-
-                if indexPath.row > 0 {
-                    if let previousCell = tableView.cellForRow(at: IndexPath(row: indexPath.row - 1, section: 0)) as? LeaderboardCell {
-                        previousCell.addBottomSeparator()
-                    }
-                }
-            } else {
-                cell.configure(with: "Error", points: 0, rank: 0, profileColorHex: nil)
-                cell.setSeparatorVisibility(visible: false)
-            }
-        }
-        else if indexPath.row < displayedScores.count {
+        if indexPath.row < displayedScores.count {
+            // Displaying users from the top 10 (global) or friends list
             let scoreData = displayedScores[indexPath.row]
-            let rank = (timeFrame == .friends) ? (indexPath.row + 1) : (indexPath.row + 1)
-            cell.configure(
-                with: scoreData.name,
-                points: scoreData.score,
-                rank: rank,
-                profileColorHex: scoreData.profileColor,
-                isRankApproximate: false
-            )
+             // Correct ranking for friends list: Use the index + 1 directly
+            let rank = indexPath.row + 1
+
+            cell.configure(with: scoreData.name,
+                           points: scoreData.score,
+                           rank: rank,
+                           profileColorHex: scoreData.profileColor) // Pass color hex
             isCurrentUserCell = scoreData.userId == currentUserId
-            let isLastVisibleRow = indexPath.row == (tableView.numberOfRows(inSection: 0) - 1)
-            cell.setSeparatorVisibility(visible: !isLastVisibleRow && !isSeparateCurrentUserRow)
+            cell.setSeparatorVisibility(visible: true) // Separator for regular rows
+
+            // Highlight if it's the current user within the displayed list (applies to both global top 10 and friends list)
+             // Use isSpecialRank: false for users within the normal list flow
+            cell.setHighlight(isHighlighted: isCurrentUserCell, isSpecialRank: false)
+
+
+        } else if timeFrame == .global, let userData = displayedCurrentUserScoreData, let rank = displayedCurrentUserRank {
+            // Displaying the current user separately (ONLY for global view, if not in top 10)
+            cell.configure(with: userData.name,
+                           points: userData.score,
+                           rank: rank,
+                           profileColorHex: userData.profileColor) // Pass color hex
+            isCurrentUserCell = true
+            cell.setSeparatorVisibility(visible: false) // No separator for the special rank cell
+            cell.setHighlight(isHighlighted: true, isSpecialRank: true) // Special highlight for separate rank row
+
+            // Add bottom separator to the previous cell (the last cell of the top 10)
+            if let previousCell = tableView.cellForRow(at: IndexPath(row: indexPath.row - 1, section: 0)) as? LeaderboardCell {
+                previousCell.addBottomSeparator()
+            }
 
         } else {
-             cell.configure(with: "Error", points: 0, rank: 0, profileColorHex: nil)
+             // Fallback / Error case - Should ideally not happen in friends view if fetch is correct
+             cell.configure(with: "Error", points: 0, rank: 0, profileColorHex: defaultColor)
              cell.setSeparatorVisibility(visible: false)
+             cell.setHighlight(isHighlighted: false, isSpecialRank: false)
         }
-
-        cell.setHighlight(isHighlighted: isCurrentUserCell, isSpecialRank: isSpecialRankRow)
 
         return cell
     }
 
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let currentUserInTop10 = displayedScores.contains { $0.userId == AuthManager.shared.currentUserId }
-        let shouldShowSeparateCurrentUserRow = timeFrame == .global && !currentUserInTop10 && displayedCurrentUserScoreData != nil
-        let isSeparateCurrentUserRow = shouldShowSeparateCurrentUserRow && indexPath.row == displayedScores.count
-
-        if isSeparateCurrentUserRow {
+        // Make the special current user rank cell taller (Only applies in Global view)
+        if timeFrame == .global && indexPath.row == displayedScores.count && displayedCurrentUserScoreData != nil {
             return 110
         }
-        return 100
+        return 100 // Standard height for other cells
     }
 }
 
@@ -541,7 +542,8 @@ class LeaderboardCell: UITableViewCell {
     private let avatarLabel = UILabel()
     private let usernameLabel = UILabel()
     private let pointsLabel = UILabel()
-    private let defaultAccentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
+    // Keep accentColor if needed for highlighting, but avatar background will use profileColor
+    private let accentColor = UIColor(red: 76/255, green: 187/255, blue: 123/255, alpha: 1.0)
     private let separatorView = UIView()
     private let bottomSeparatorView = UIView()
 
@@ -567,27 +569,25 @@ class LeaderboardCell: UITableViewCell {
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 15
         containerView.layer.masksToBounds = false
-        containerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.08).cgColor
-        containerView.layer.shadowOffset = CGSize(width: 0, height: 3)
-        containerView.layer.shadowRadius = 5
-        containerView.layer.shadowOpacity = 1
         containerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(containerView)
 
-        rankLabel.font = UIFont(name: "Sen-Bold", size: 18)!
+        rankLabel.font = UIFont(name: "Sen-Regular", size: 18)!
         rankLabel.textColor = .lightGray
         rankLabel.textAlignment = .center
         rankLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(rankLabel)
 
+        // Avatar setup remains similar, background color will be set in configure
         avatarImageView.layer.cornerRadius = 25
         avatarImageView.clipsToBounds = true
-        avatarImageView.backgroundColor = defaultAccentColor
+        avatarImageView.layer.borderWidth = 2
+        avatarImageView.layer.borderColor = UIColor.white.cgColor
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(avatarImageView)
 
         avatarLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        avatarLabel.textColor = .white
+        avatarLabel.textColor = .white // Assuming white text looks good on most profile colors
         avatarLabel.textAlignment = .center
         avatarLabel.translatesAutoresizingMaskIntoConstraints = false
         avatarImageView.addSubview(avatarLabel)
@@ -606,7 +606,7 @@ class LeaderboardCell: UITableViewCell {
         separatorView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(separatorView)
 
-        bottomSeparatorView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+        bottomSeparatorView.backgroundColor = UIColor.lightGray
         bottomSeparatorView.translatesAutoresizingMaskIntoConstraints = false
         bottomSeparatorView.isHidden = true
         contentView.addSubview(bottomSeparatorView)
@@ -631,13 +631,12 @@ class LeaderboardCell: UITableViewCell {
             avatarLabel.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor),
 
             usernameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 15),
-            usernameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 25),
-            usernameLabel.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -15),
+            usernameLabel.topAnchor.constraint(equalTo: avatarImageView.topAnchor, constant: 2),
+            usernameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -15),
 
             pointsLabel.leadingAnchor.constraint(equalTo: usernameLabel.leadingAnchor),
             pointsLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4),
             pointsLabel.trailingAnchor.constraint(equalTo: usernameLabel.trailingAnchor),
-            pointsLabel.bottomAnchor.constraint(lessThanOrEqualTo: containerView.bottomAnchor, constant: -25),
 
             separatorView.leadingAnchor.constraint(equalTo: usernameLabel.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -15),
@@ -652,12 +651,13 @@ class LeaderboardCell: UITableViewCell {
     }
 
     // MARK: - Configuration
-     func configure(with username: String, points: Int, rank: Int, profileColorHex: String?, isRankApproximate: Bool = false) {
+    // Update configure method to accept profileColorHex
+     func configure(with username: String, points: Int, rank: Int, profileColorHex: String, isRankApproximate: Bool = false) {
          usernameLabel.text = username
          pointsLabel.text = "\(points) points"
 
          if isRankApproximate {
-             rankLabel.text = "..."
+             rankLabel.text = "..." // Or handle appropriately
          } else {
              rankLabel.text = "\(rank)"
          }
@@ -668,12 +668,10 @@ class LeaderboardCell: UITableViewCell {
              avatarLabel.text = "?"
          }
 
-         if let hex = profileColorHex, let color = UIColor(hex: hex) {
-             avatarImageView.backgroundColor = color
-         } else {
-             avatarImageView.backgroundColor = defaultAccentColor
-         }
+         // Set avatar background color using the hex string
+         avatarImageView.backgroundColor = UIColor.fromHex(profileColorHex) ?? accentColor // Fallback to accentColor
      }
+
 
     func setSeparatorVisibility(visible: Bool) {
         separatorView.isHidden = !visible
@@ -684,23 +682,22 @@ class LeaderboardCell: UITableViewCell {
      }
 
     func setHighlight(isHighlighted: Bool, isSpecialRank: Bool) {
-        let highlightColor = defaultAccentColor
-
+        // Keep highlight logic potentially using accentColor for borders/background tint
         if isHighlighted {
-            containerView.backgroundColor = highlightColor.withAlphaComponent(0.1)
-            containerView.layer.borderColor = highlightColor.cgColor
-            containerView.layer.borderWidth = isSpecialRank ? 0 : 1.5
-            rankLabel.textColor = highlightColor
-            usernameLabel.textColor = highlightColor
-            pointsLabel.textColor = highlightColor.withAlphaComponent(0.8)
+            containerView.backgroundColor = accentColor.withAlphaComponent(0.1)
+            containerView.layer.borderColor = accentColor.cgColor
+            containerView.layer.borderWidth = isSpecialRank ? 0 : 1.5 // Only add border if not special rank
+            rankLabel.textColor = accentColor
+            usernameLabel.textColor = accentColor // Highlight text as well
         } else {
             containerView.backgroundColor = .white
             containerView.layer.borderWidth = 0
             rankLabel.textColor = .lightGray
-            usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            pointsLabel.textColor = .gray
+            usernameLabel.textColor = UIColor(red: 34/255, green: 34/255, blue: 34/255, alpha: 1.0) // Reset text color
         }
-         containerView.transform = isSpecialRank ? CGAffineTransform(translationX: 0, y: 10) : .identity
+         // Add transform for special rank cell only if it's highlighted
+         containerView.transform = (isHighlighted && isSpecialRank) ? CGAffineTransform(translationX: 0, y: 10) : .identity
+
     }
 
 
@@ -712,11 +709,10 @@ class LeaderboardCell: UITableViewCell {
         pointsLabel.text = nil
         rankLabel.text = nil
         avatarLabel.text = nil
-        avatarImageView.backgroundColor = defaultAccentColor
+        avatarImageView.backgroundColor = accentColor // Reset to default before reuse
         setHighlight(isHighlighted: false, isSpecialRank: false)
         setSeparatorVisibility(visible: true)
         bottomSeparatorView.isHidden = true
         containerView.transform = .identity
-        containerView.layer.borderWidth = 0
     }
 }
